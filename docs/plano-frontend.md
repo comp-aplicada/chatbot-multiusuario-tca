@@ -1,6 +1,6 @@
 # Plano do front-end (Izaías)
 
-> Itens marcados com `[x]` já foram executados. Primeiro passo pendente: **Fase 0, item "Convidar Pedro, Maria Eduarda e Eduardo como colaboradores"**.
+> Itens marcados com `[x]` já foram executados. Primeiro passo pendente: **Fase 0, item "Mandar no grupo o link do repo e do board"**, e depois abrir o PR da Fase 1.
 
 - **Dono:** Izaías de Melo Lima Morais
 - **Revisor dos PRs:** Eduardo (rodízio da seção 9.1 do PRD)
@@ -34,12 +34,13 @@ Entregar uma interface web de chat, servida no mesmo domínio da API, que:
 | Item | Escolha | Motivo |
 |---|---|---|
 | Build | **Vite** | Definido no PRD; dev server rápido e proxy de `/api` embutido |
-| UI | **React 18** (JavaScript, `.jsx`) | Definido no PRD; estado de chat simples de explicar na apresentação |
+| UI | **React 19** (`.tsx`) | Definido no PRD; estado de chat simples de explicar na apresentação |
+| Linguagem | **TypeScript 7** com `strict` e `noUncheckedIndexedAccess` | O contrato da API vira tipo, então campo errado ou persona inválida quebra na compilação e não na demo. Proibido `any` (regra `typescript/no-explicit-any` no oxlint) |
 | Estilo | **Tailwind CSS v4** (`@tailwindcss/vite`) | Responsivo sem escrever CSS à mão; só escala padrão, nada de valores arbitrários em px |
 | Markdown | **react-markdown** (sem `rehype-raw`) | HTML vindo do modelo vira texto, não é interpretado (PRD 6) |
 | Testes | **Vitest + @testing-library/react + jsdom** | Definido no PRD 8.6 |
-| Lint | **ESLint** (config padrão do template Vite) | Organização do código conta na nota |
-| Node | **20** | Mesmo do estágio de build do `infra/web.Dockerfile` (PRD 7.2) |
+| Lint | **oxlint** (padrão do template Vite atual) | Organização do código conta na nota |
+| Node | **20.19 ou mais novo** (exigência do Vite 8) | Mesmo do estágio de build do `infra/web.Dockerfile` (PRD 7.2) |
 
 ---
 
@@ -49,37 +50,41 @@ Entregar uma interface web de chat, servida no mesmo domínio da API, que:
 frontend/
 ├── index.html
 ├── package.json
-├── vite.config.js            # proxy /api -> http://localhost:8000 e config do Vitest
+├── tsconfig.json             # referências para tsconfig.app.json (src e tests) e tsconfig.node.json (vite.config.ts)
+├── vite.config.ts            # proxy /api -> http://localhost:8000 e config do Vitest
 ├── src/
-│   ├── main.jsx
-│   ├── App.jsx               # decide entre StartScreen e ChatWindow
+│   ├── main.tsx
+│   ├── App.tsx               # decide entre StartScreen e ChatWindow
 │   ├── index.css             # @import "tailwindcss"
-│   ├── constants.js          # MAX_CHARS, PERSONAS, STORAGE_KEY, mensagens fixas
+│   ├── constants.ts          # MAX_CHARS, PERSONAS, STORAGE_KEY, mensagens fixas
 │   ├── api/
-│   │   └── client.js         # ÚNICO lugar com fetch
+│   │   ├── client.ts         # ÚNICO lugar com fetch
+│   │   └── types.ts          # tipos do contrato da API (seção 5 do PRD)
 │   ├── state/
-│   │   └── chatReducer.js    # estado e ações da conversa
+│   │   └── chatReducer.ts    # estado e ações da conversa
 │   └── components/
-│       ├── StartScreen.jsx
-│       ├── ChatWindow.jsx
-│       ├── SessionBadge.jsx
-│       ├── MessageList.jsx
-│       ├── MessageBubble.jsx
-│       └── MessageInput.jsx
+│       ├── StartScreen.tsx
+│       ├── ChatWindow.tsx
+│       ├── SessionBadge.tsx
+│       ├── MessageList.tsx
+│       ├── MessageBubble.tsx
+│       └── MessageInput.tsx
 └── tests/
-    ├── setup.js
-    ├── client.test.js
-    ├── startSession.test.jsx
-    ├── sendMessage.test.jsx
-    ├── markdown.test.jsx
-    └── errors.test.jsx
+    ├── setup.ts
+    ├── client.test.ts
+    ├── startSession.test.tsx
+    ├── sendMessage.test.tsx
+    ├── markdown.test.tsx
+    └── errors.test.tsx
 ```
 
 ---
 
-## 4. Camada de API (`src/api/client.js`)
+## 4. Camada de API (`src/api/client.ts`)
 
 Todas as URLs são relativas (`/api/...`), o que funciona em dev (proxy do Vite) e em produção (Nginx no mesmo domínio, sem CORS).
+
+Os tipos do contrato ficam em `src/api/types.ts` e espelham a seção 5 do PRD: `PersonaId`, `ChatMessage` (`role`, `content`, `created_at`), `SessionCreated`, `SessionDetail`, `SendMessageResponse` e `ApiErrorBody`. As funções do cliente devolvem `Promise` desses tipos, e a resposta do `fetch` é validada com um type guard antes de ser usada, sem `as` solto nem `any`.
 
 | Função | Requisição | Retorno em sucesso |
 |---|---|---|
@@ -105,7 +110,7 @@ Toda falha vira um `ApiError` com `{ status, code, message }`, para os component
 
 ## 5. Estado e fluxos
 
-### 5.1 Estado (`useReducer` em `App.jsx`)
+### 5.1 Estado (`useReducer` em `App.tsx`)
 
 ```js
 {
@@ -188,19 +193,19 @@ Vitest + Testing Library, com `fetch` mockado por `vi.fn()` em cada teste.
 
 | Arquivo | Caso | Resultado esperado |
 |---|---|---|
-| `client.test.js` | API devolve `{ error: { code, message } }` | `ApiError` com o `code` e a `message` da API |
-| `client.test.js` | `fetch` lança exceção | `ApiError` com `network_error` e mensagem genérica |
-| `client.test.js` | 502 com corpo HTML | `ApiError` com `network_error` |
-| `startSession.test.jsx` | Criar sessão | ID salvo no `sessionStorage` e `SessionBadge` com os 8 primeiros caracteres |
-| `sendMessage.test.jsx` | Enviar mensagem | Resposta renderizada; input desabilitado enquanto aguarda |
-| `sendMessage.test.jsx` | Enter e Shift+Enter | Enter envia; Shift+Enter não envia |
-| `markdown.test.jsx` | Resposta com `**x**` | Renderiza `<strong>x</strong>` |
-| `markdown.test.jsx` | Resposta com `<script>` | Aparece como texto e nenhum `<script>` entra no DOM |
-| `errors.test.jsx` | 404 ao recarregar | Volta para `StartScreen` com "Sua sessão expirou" |
-| `errors.test.jsx` | 503 ao enviar | Mostra a mensagem da API e "Tentar de novo"; o clique reenvia o mesmo texto |
-| `errors.test.jsx` | Exceção de rede ao enviar | Mostra "Não foi possível falar com o servidor. Tente novamente." |
+| `client.test.ts` | API devolve `{ error: { code, message } }` | `ApiError` com o `code` e a `message` da API |
+| `client.test.ts` | `fetch` lança exceção | `ApiError` com `network_error` e mensagem genérica |
+| `client.test.ts` | 502 com corpo HTML | `ApiError` com `network_error` |
+| `startSession.test.tsx` | Criar sessão | ID salvo no `sessionStorage` e `SessionBadge` com os 8 primeiros caracteres |
+| `sendMessage.test.tsx` | Enviar mensagem | Resposta renderizada; input desabilitado enquanto aguarda |
+| `sendMessage.test.tsx` | Enter e Shift+Enter | Enter envia; Shift+Enter não envia |
+| `markdown.test.tsx` | Resposta com `**x**` | Renderiza `<strong>x</strong>` |
+| `markdown.test.tsx` | Resposta com `<script>` | Aparece como texto e nenhum `<script>` entra no DOM |
+| `errors.test.tsx` | 404 ao recarregar | Volta para `StartScreen` com "Sua sessão expirou" |
+| `errors.test.tsx` | 503 ao enviar | Mostra a mensagem da API e "Tentar de novo"; o clique reenvia o mesmo texto |
+| `errors.test.tsx` | Exceção de rede ao enviar | Mostra "Não foi possível falar com o servidor. Tente novamente." |
 
-Comando: `npm test` (roda `vitest run`). Os testes precisam passar antes de abrir cada PR.
+Comando: `npm test` (roda `vitest run`). Os testes, o `npm run typecheck` e o `npm run lint` precisam passar antes de abrir cada PR.
 
 ---
 
@@ -208,35 +213,38 @@ Comando: `npm test` (roda `vitest run`). Os testes precisam passar antes de abri
 
 Branches no padrão `feat/frontend-<descricao>`, um PR por fase, revisado pelo Eduardo. Commits seguindo o [AGENTS.md](../AGENTS.md).
 
-### Fase 0. Repositório e organização (entrega transversal) · seg 09/11
+### Fase 0. Repositório e organização (entrega transversal) · seg 09/11 · #1
 
 - [x] Criar o repositório `comp-aplicada/chatbot-multiusuario-tca`
 - [x] Subir enunciado, PRD e `AGENTS.md`
 - [x] Criar as pastas `backend/`, `frontend/`, `infra/`, `scripts/` e `docs/`
 - [x] Adicionar `.gitignore` com `.env` desde o início
-- [ ] Convidar Pedro, Maria Eduarda e Eduardo como colaboradores com permissão de escrita
-- [ ] Criar o board de tasks (GitHub Projects) com uma task por célula de "Módulo", "Testes" e "Entrega transversal" da tabela 9 do PRD
-- [ ] Criar `.github/pull_request_template.md` (o que mudou, como testar, checklist de testes)
-- [ ] Ativar proteção da `main`: PR obrigatório com 1 aprovação, sem push direto
-- [ ] Mandar no grupo o link do repo e o cronograma ajustado para 26/11
+- [x] Convidar Pedro, Maria Eduarda e Eduardo como colaboradores com permissão de escrita. Todos com acesso de escrita e a Maria Eduarda (`DudaGomes`) já associada às issues dela
+- [x] Criar o board de tasks (GitHub Projects) com uma task por célula de "Módulo", "Testes" e "Entrega transversal" da tabela 9 do PRD, com datas de início e entrega e a milestone "Apresentação (26/11)"
+- [x] Criar `.github/pull_request_template.md` (o que mudou, como testar, checklist de testes)
+- [x] Ativar proteção da `main`: PR obrigatório com 1 aprovação, sem push direto, valendo também para admins
+- [ ] Mandar no grupo o link do repo e do board
 
-### Fase 1. Esqueleto · ter 10/11 · `feat/frontend-setup`
+### Fase 1. Esqueleto · ter 10/11 · `feat/frontend-setup` · #4
 
-- [ ] `npm create vite@latest frontend -- --template react`
-- [ ] Instalar Tailwind v4, `react-markdown`, Vitest, Testing Library e jsdom
-- [ ] `vite.config.js` com proxy `/api` para `http://localhost:8000` e bloco `test` (jsdom, `tests/setup.js`)
-- [ ] `constants.js` com `MAX_CHARS = 2000`, personas e textos fixos
-- [ ] Scripts `dev`, `build`, `preview`, `test`, `lint` no `package.json`
-- [ ] `npm run build` gera `dist/` sem erro (o Pedro depende disso no `web.Dockerfile`)
+- [x] `npm create vite@latest frontend -- --template react`
+- [x] Instalar Tailwind v4, `react-markdown`, Vitest, Testing Library e jsdom
+- [x] `vite.config.ts` com proxy `/api` para `http://localhost:8000` e bloco `test` (jsdom, `tests/setup.ts`)
+- [x] `constants.ts` com `MAX_CHARS = 2000`, personas e textos fixos
+- [x] Scripts `dev`, `build` (`tsc -b && vite build`), `preview`, `test`, `typecheck`, `lint` no `package.json`
+- [x] Projeto em TypeScript: `tsconfig` com `strict`, testes incluídos no typecheck e `any` proibido no lint
+- [x] `npm run build` gera `dist/` sem erro (o Pedro depende disso no `web.Dockerfile`)
+- [ ] Abrir o PR da branch `feat/frontend-setup` para a `main`, com revisão do Eduardo
 
-### Fase 2. Cliente da API e estado · qua 11/11 · `feat/frontend-api-client`
+### Fase 2. Cliente da API e estado · qua 11/11 · `feat/frontend-api-client` · #5
 
-- [ ] `client.js` com as 4 funções e o `ApiError`
-- [ ] `chatReducer.js` com as ações `start`, `loaded`, `send`, `reply`, `fail`, `retry`, `expired`, `reset`
-- [ ] Testes de `client.test.js`
+- [ ] `types.ts` com os tipos do contrato da API
+- [ ] `client.ts` com as 4 funções tipadas e o `ApiError`
+- [ ] `chatReducer.ts` com as ações `start`, `loaded`, `send`, `reply`, `fail`, `retry`, `expired`, `reset`
+- [ ] Testes de `client.test.ts`
 - [ ] Rodar contra o stub da API da Maria Eduarda (`uvicorn` local) e conferir o formato das respostas
 
-### Fase 3. Telas · sex 13/11 · `feat/frontend-chat`
+### Fase 3. Telas · sex 13/11 · `feat/frontend-chat` · #13
 
 - [ ] `StartScreen` com escolha de persona
 - [ ] `ChatWindow`, `SessionBadge`, `MessageList`, `MessageBubble`, `MessageInput`
@@ -244,20 +252,20 @@ Branches no padrão `feat/frontend-<descricao>`, um PR por fase, revisado pelo E
 - [ ] Botão "Nova conversa"
 - [ ] Layout responsivo validado em 360px no DevTools
 
-### Fase 4. Erros e testes · seg 16/11 · `feat/frontend-erros`
+### Fase 4. Erros e testes · seg 16/11 · `feat/frontend-erros` · #15 e #16
 
 - [ ] Fluxo de sessão expirada (404 no load e no envio)
 - [ ] Mensagem com erro e "Tentar de novo" para 422, 503, 504, 500 e rede
 - [ ] Todos os testes da seção 8 passando
 - [ ] Seção "Front-end: como rodar" no README
 
-### Fase 5. Integração com produção · qua 18/11
+### Fase 5. Integração com produção · qua 18/11 · #21
 
 - [ ] Front servido pelo Nginx da EC2 junto com o Pedro (`infra/web.Dockerfile`)
 - [ ] Conversa completa em `https://<domínio>` com o LLM real
 - [ ] Três abas com personas diferentes conversando ao mesmo tempo
 
-### Fase 6. Ensaio e congelamento · ter 24/11 e qua 25/11
+### Fase 6. Ensaio e congelamento · ter 24/11 e qua 25/11 · #29 e #30
 
 - [ ] Checklist manual da seção 10 contra produção
 - [ ] Teste da versão local (`docker compose -f docker-compose.yml -f docker-compose.local.yml up --build`) no notebook da apresentação
@@ -266,7 +274,7 @@ Branches no padrão `feat/frontend-<descricao>`, um PR por fase, revisado pelo E
 - [ ] Ensaiar os blocos de 12 a 17 min e de 22 a 26 min
 - [ ] Congelamento do código na terça 24/11 às 18h
 
-### Apresentação · qui 26/11
+### Apresentação · qui 26/11 · #31
 
 - [ ] Bloco "Front-end React e fluxo de sessão no navegador" (12 a 17 min)
 - [ ] Conduzir a demo ao vivo (22 a 26 min)
@@ -292,11 +300,11 @@ Branches no padrão `feat/frontend-<descricao>`, um PR por fase, revisado pelo E
 
 ### Bloco 12 a 17 min: front-end
 
-1. Por que React + Vite: componentes pequenos e estado da conversa num único reducer.
+1. Por que React + Vite + TypeScript: componentes pequenos, estado da conversa num único reducer e o contrato da API checado na compilação.
 2. Fluxo da sessão no navegador: `POST /api/sessions` gera o UUID no servidor, o front guarda em `sessionStorage`, cada aba é um usuário.
 3. F5 recarrega o histórico com `GET /api/sessions/{id}`; 404 leva a "Sua sessão expirou".
 4. Segurança: Markdown sem `rehype-raw`, então HTML do modelo não executa.
-5. `client.js` como único ponto de rede e o tratamento de erros padronizado.
+5. `client.ts` como único ponto de rede e o tratamento de erros padronizado.
 
 ### Bloco 22 a 26 min: demo
 
