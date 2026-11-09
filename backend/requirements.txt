@@ -1,0 +1,2 @@
+# openai 3.x usa httpx2, que o respx não intercepta nos testes; fica no 2.x.
+openai>=2.54,<3
