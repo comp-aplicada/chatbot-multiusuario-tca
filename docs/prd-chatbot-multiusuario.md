@@ -45,7 +45,7 @@ O enunciado exige justificativa técnica da escolha de modelo e framework. Estes
 | Provedor | **Groq** (principal, free tier) e **DeepInfra** (reserva paga) | Groq é gratuito e tem latência muito baixa; DeepInfra elimina o risco de rate limit na demo | OpenRouter free (limite menor, latência variável) |
 | SDK | **`openai` (Python, AsyncOpenAI)** | Groq e DeepInfra expõem API compatível com OpenAI, então trocar de provedor é só mudar o `.env` | LangChain (camada desnecessária para chat simples) |
 | Sessões | **Memória do processo**, atrás da interface `SessionStore` | Simples e rápido; a interface permite trocar por Redis sem mexer nas rotas | Redis, SQLite |
-| Front-end | **React + Vite** | Componentização e estado de chat claros; o build estático é servido pelo Nginx no mesmo domínio (sem CORS) | HTML puro, sem front |
+| Front-end | **React + Vite + TypeScript** | Componentização e estado de chat claros; o contrato da API vira tipo e erros de campo aparecem na compilação; o build estático é servido pelo Nginx no mesmo domínio (sem CORS) | HTML puro, sem front, JavaScript sem tipos |
 | Infra | **EC2 + Docker Compose + Nginx + Let's Encrypt** | Ambiente igual em dev e prod; HTTPS no domínio do Pedro; deploy com um comando | systemd sem Docker |
 
 ---
@@ -93,10 +93,12 @@ chatbot-multiusuario-tca/
 │   └── Dockerfile
 ├── frontend/                  # projeto Vite + React
 │   ├── src/
-│   │   ├── api/client.js      # funções que chamam a API
+│   │   ├── api/client.ts      # funções que chamam a API
+│   │   ├── api/types.ts       # tipos do contrato (seção 5)
 │   │   ├── components/        # StartScreen, ChatWindow, MessageList, MessageInput, SessionBadge
-│   │   └── App.jsx
-│   ├── vite.config.js         # proxy /api → http://localhost:8000 em dev
+│   │   └── App.tsx
+│   ├── vite.config.ts         # proxy /api → http://localhost:8000 em dev
+│   ├── tsconfig.json
 │   └── package.json
 ├── infra/
 │   ├── nginx/default.conf     # produção (HTTPS)
@@ -317,9 +319,9 @@ Resposta:
 - A mensagem do usuário aparece na lista imediatamente. Se o envio falhar, ela fica marcada com erro e um botão "Tentar de novo" reenvia o mesmo texto.
 - Erros 422, 503, 504 e 500 exibem a `message` da API. O 404 durante o chat leva ao fluxo de sessão expirada.
 - Exceção de rede no `fetch` ou corpo que não é JSON (ex.: 502 em HTML do Nginx enquanto o container `api` reinicia) exibe "Não foi possível falar com o servidor. Tente novamente." com o botão "Tentar de novo".
-- `src/api/client.js` é o único lugar que faz `fetch`. Todas as URLs são relativas (`/api/...`).
+- `src/api/client.ts` é o único lugar que faz `fetch`. Todas as URLs são relativas (`/api/...`).
 - O limite do contador de caracteres é uma constante `MAX_CHARS = 2000` no front e deve ser mantido igual a `MESSAGE_MAX_CHARS`.
-- Em desenvolvimento, `vite.config.js` faz proxy de `/api` para `http://localhost:8000`.
+- Em desenvolvimento, `vite.config.ts` faz proxy de `/api` para `http://localhost:8000`.
 - O layout deve funcionar no celular (largura mínima de 360px), porque a turma vai acessar pelo QR code.
 
 ---
