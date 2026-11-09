@@ -1,6 +1,6 @@
 # Apresentação do Protótipo 1 (2ª Avaliação)
 
-- **Data da apresentação:** 16/11/2026, presencial, em sala de aula
+- **Data da apresentação:** 26/11/2026, presencial, em sala de aula
 - **Duração:** 30 minutos por equipe
 - **Entrega:** código-fonte publicado em repositório no GitHub
 
