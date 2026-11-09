@@ -6,6 +6,15 @@ Instruções para agentes de código (Claude Code, Codex, Cursor etc.) que traba
 
 - `docs/tarefa.md`: enunciado formalizado do trabalho (requisitos e critérios de avaliação).
 - `docs/prd-chatbot-multiusuario.md`: PRD / spec técnica do chatbot da Equipe B.
+- `docs/plano-frontend.md`: plano de execução do front-end (Izaías).
+
+## Estrutura
+
+- `backend/`: API FastAPI (Maria Eduarda e Eduardo)
+- `frontend/`: React + Vite (Izaías)
+- `infra/`: Nginx, Dockerfile do front e deploy na EC2 (Pedro)
+- `scripts/`: teste de concorrência e smoke test
+- `docs/`: enunciado, PRD e planos
 
 ## Commits
 
