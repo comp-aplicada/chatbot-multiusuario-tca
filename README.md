@@ -26,9 +26,9 @@ Chatbot multiusuário com LLM da Equipe B para a 2ª avaliação (apresentação
 | Fase | Provedor | `LLM_BASE_URL` | `LLM_MODEL` | `LLM_EXTRA_BODY` |
 |---|---|---|---|---|
 | Desenvolvimento | Groq (gratuito) | `https://api.groq.com/openai/v1` | `qwen/qwen3.8-27b` | `{"reasoning_effort":"none"}` |
-| Demo (24/11 em diante) | DeepInfra (pago) | `https://api.deepinfra.com/v1/openai` | `Qwen/Qwen3-32B` | `{}` |
+| Demo (24/11 em diante) | DeepInfra (pago) | `https://api.deepinfra.com/v1/openai` | `Qwen/Qwen3.8-27B` | `{"reasoning_effort":"none"}` |
 
-O Groq desligou o `qwen/qwen3-32b` em 17/07/2026 ([deprecações](https://console.groq.com/docs/deprecations)). No Groq, o único Qwen disponível hoje é o `qwen/qwen3.8-27b`, ainda em *preview*. Na DeepInfra, o `Qwen/Qwen3-32B` continua disponível. Trocar de provedor é só mudar essas três variáveis no `.env` (modelo em `.env.example`).
+O Groq desligou o `qwen/qwen3-32b` em 17/07/2026 ([deprecações](https://console.groq.com/docs/deprecations)). No Groq, o único Qwen disponível hoje é o `qwen/qwen3.8-27b`, ainda em *preview*. A demo usa o mesmo modelo na DeepInfra (`Qwen/Qwen3.8-27B`), que na comparação de 14/11 foi mais rápido e mais correto que o `Qwen/Qwen3-32B` ([escolha do modelo](docs/escolha-do-modelo.md)). Nos dois provedores o `LLM_EXTRA_BODY` leva `reasoning_effort: none`. Na DeepInfra ele é obrigatório: sem ele, o modelo ignora o `/no_think`, raciocina escondido, gasta o `max_tokens` e devolve a resposta cortada. Trocar de provedor é só mudar essas três variáveis no `.env` (modelo em `.env.example`).
 
 ### Limites do Groq para o `qwen/qwen3.8-27b`
 
@@ -37,6 +37,8 @@ O Groq desligou o `qwen/qwen3-32b` em 17/07/2026 ([deprecações](https://consol
 | 30 | 1.000 | 8.000 | 200.000 |
 
 Conferido em **Settings > Limits** no painel do Groq com a chave da equipe em 14/11/2026 (plano gratuito). Os valores batem com a página de [Rate Limits do Groq](https://console.groq.com/docs/rate-limits).
+
+Há também um limite de **1.000 tokens de saída por minuto** que não aparece no painel. Cada chamada reserva de 440 a 512 tokens dele antes de responder, então duas ou três respostas longas seguidas dão 429, e o Groq pede de 8 a 12 s de espera. No desenvolvimento isso pode aparecer como 503 de vez em quando; na demo, com a DeepInfra, não acontece.
 
 ### Decisão do teste de concorrência
 
