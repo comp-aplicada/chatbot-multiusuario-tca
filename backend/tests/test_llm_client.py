@@ -1,3 +1,4 @@
+import asyncio
 import json
 from dataclasses import dataclass, field
 from typing import Any
@@ -7,7 +8,7 @@ import pytest
 import respx
 
 from app.errors import LLMTimeout, LLMUnavailable
-from app.llm.client import LLMClient, clean_reply
+from app.llm.client import LLMClient, clean_reply, llm_attempts
 from app.llm.personas import PERSONAS
 
 BASE_URL = "https://llm.test/v1"
@@ -239,3 +240,59 @@ async def test_resposta_vazia_levanta_llm_unavailable(mock_llm, sleep, content):
         await make_client(sleep).chat("geral", [], "x")
 
     assert mock_llm.call_count == 1
+
+
+# Número de tentativas (log da rota, PRD 5.7)
+
+
+async def _chat_e_tentativas(client: LLMClient, question: str) -> tuple[str, int]:
+    try:
+        reply = await client.chat("geral", [], question)
+    except (LLMTimeout, LLMUnavailable) as exc:
+        reply = type(exc).__name__
+    return reply, llm_attempts.get()
+
+
+@pytest.mark.parametrize(
+    ("respostas", "esperado"),
+    [
+        ([completion("ok")], ("ok", 1)),
+        ([error(429), completion("ok")], ("ok", 2)),
+        ([error(429), error(429), error(429)], ("LLMUnavailable", 3)),
+        ([error(401)], ("LLMUnavailable", 1)),
+        (httpx.ReadTimeout("demorou"), ("LLMTimeout", 1)),
+    ],
+)
+async def test_llm_attempts_registra_tentativas(mock_llm, sleep, respostas, esperado):
+    mock_llm.side_effect = respostas
+
+    assert await _chat_e_tentativas(make_client(sleep), "x") == esperado
+
+
+async def test_llm_attempts_recomeca_a_cada_chamada(mock_llm, sleep):
+    client = make_client(sleep)
+    mock_llm.side_effect = [error(429), error(429), completion("a"), completion("b")]
+
+    assert await _chat_e_tentativas(client, "x") == ("a", 3)
+    assert await _chat_e_tentativas(client, "y") == ("b", 1)
+
+
+async def test_llm_attempts_e_isolado_entre_requisicoes_concorrentes(mock_llm, sleep):
+    falhou_uma_vez: set[str] = set()
+
+    def responder(request: httpx.Request) -> httpx.Response:
+        pergunta = json.loads(request.content)["messages"][-1]["content"]
+        if pergunta == "lenta" and pergunta not in falhou_uma_vez:
+            falhou_uma_vez.add(pergunta)
+            return error(429)
+        return completion(pergunta)
+
+    mock_llm.side_effect = responder
+    client = make_client(sleep)
+
+    resultados = await asyncio.gather(
+        asyncio.create_task(_chat_e_tentativas(client, "lenta")),
+        asyncio.create_task(_chat_e_tentativas(client, "rapida")),
+    )
+
+    assert resultados == [("lenta", 2), ("rapida", 1)]

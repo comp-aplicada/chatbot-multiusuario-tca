@@ -8,6 +8,7 @@ import asyncio
 import logging
 import re
 from collections.abc import Awaitable, Callable, Sequence
+from contextvars import ContextVar
 from typing import Any, Protocol
 
 from openai import (
@@ -24,6 +25,13 @@ logger = logging.getLogger(__name__)
 
 _THINK_BLOCK = re.compile(r"<think>.*?</think>", re.DOTALL)
 _THINK_UNCLOSED = re.compile(r"<think>.*\Z", re.DOTALL)
+
+# Quantas tentativas a última chamada a `chat` fez na requisição atual, para o
+# log da rota (PRD 5.7). Fica num ContextVar para não mudar a assinatura de
+# `chat`: cada requisição roda na sua própria task do asyncio, com uma cópia do
+# contexto, então requisições concorrentes não enxergam o valor umas das outras.
+# A rota lê `llm_attempts.get()` depois do `await llm.chat(...)`, com sucesso ou erro.
+llm_attempts: ContextVar[int] = ContextVar("llm_attempts", default=0)
 
 
 class LLMSettings(Protocol):
@@ -95,7 +103,9 @@ class LLMClient:
         messages = self.build_messages(persona, history, question)
         max_attempts = 1 + s.llm_max_retries
 
+        llm_attempts.set(0)
         for attempt in range(1, max_attempts + 1):
+            llm_attempts.set(attempt)
             try:
                 response = await self._client.chat.completions.create(
                     model=s.llm_model,
