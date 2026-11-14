@@ -7,6 +7,7 @@ Instruções para agentes de código (Claude Code, Codex, Cursor etc.) que traba
 - `docs/tarefa.md`: enunciado formalizado do trabalho (requisitos e critérios de avaliação).
 - `docs/prd-chatbot-multiusuario.md`: PRD / spec técnica do chatbot da Equipe B.
 - `docs/plano-frontend.md`: plano de execução do front-end (Izaías).
+- `docs/achados.md`: achados e aprendizados para a apresentação. Sempre que um teste, medição ou bug revelar algo não óbvio (limite de provedor, comportamento do modelo, decisão que mudou o PRD), registre ali com data, números e link para o PR ou a issue.
 
 ## Estrutura
 
