@@ -17,7 +17,10 @@ Quando aparecer um achado novo, ele entra aqui, no tópico certo, com data, núm
 | 7 | O Qwen3.8 ignora o `/no_think` na DeepInfra | Respostas cortadas, só 21 palavras | `reasoning_effort: none` no `LLM_EXTRA_BODY` |
 | 8 | Respostas da DeepInfra começam com linhas em branco | Nenhum, já tratado | O `strip()` do `LLMClient` resolve |
 | 9 | O `openai` 3.x troca o `httpx` pelo `httpx2` | Os testes com `respx` acessavam a rede de verdade | Versão travada em `openai<3` |
-| 10 | 10 usuários em paralelo levam o mesmo tempo que 1 | Prova de que o servidor não serializa as chamadas ao LLM | Vira argumento da demo |
+| 10 | 10 usuários em paralelo levam o mesmo tempo que 1 (teste direto no `LLMClient`) | O cliente faz as chamadas em paralelo sem misturar históricos | A prova contra o servidor vem do pytest (#17) e do `concurrency_test.py` (#22) |
+| 11 | Número de tentativas do LLM para o log, sem mudar a interface | A rota precisa logar `attempts=` | `ContextVar` isolado por requisição |
+| 12 | O padrão do `LLM_EXTRA_BODY` no PRD era `{}` | Um `.env` de produção sem essa linha faria a DeepInfra cortar as respostas | Padrão passa a ser `{"reasoning_effort":"none"}` |
+| 13 | Apagar a branch base fecha o PR empilhado | O #38 foi fechado sozinho no merge do #37 | PR reaberto como #42; evitar PRs empilhados |
 
 ---
 
@@ -110,13 +113,42 @@ Quando aparecer um achado novo, ele entra aqui, no tópico certo, com data, núm
 ### 10. 10 usuários em paralelo levam o mesmo tempo que 1 (14/11)
 
 - **Medição:** com o `LLMClient` e o `Qwen3.8-27B` na DeepInfra, 10 usuários enviaram em paralelo "Meu nome é <Nome>" e depois "Qual é o meu nome?". O resultado foi 10/10 respostas certas, sem nenhum nome trocado, em 2,8 s no total, com cada segunda resposta entre 0,3 e 0,8 s.
-- **Para explicar:** se o servidor atendesse um usuário por vez, o total seria perto da soma das latências. O total perto da latência de um usuário mostra que as chamadas ao LLM rodam em paralelo (asyncio) e que o histórico de cada sessão fica isolado. Esse teste ainda foi direto no cliente; o oficial roda contra produção com o `scripts/concurrency_test.py` (#22).
+- **Para explicar:** se as chamadas fossem feitas uma por vez, o total seria perto da soma das latências. O total perto da latência de um usuário mostra que as chamadas ao LLM rodam em paralelo (asyncio) e que cada histórico fica separado. **Esse teste foi direto no `LLMClient`, sem a API**: ele mostra o comportamento do cliente e do provedor, não do servidor. A prova de que o servidor não serializa e não mistura sessões vem do teste determinístico do pytest (#17) e do `scripts/concurrency_test.py` contra produção (#22).
+
+### 11. Número de tentativas por requisição com `ContextVar` (14/11)
+
+- **O problema:** o log de cada mensagem (PRD 5.7) tem `attempts=`, mas o `chat(...)` do `LLMClient` só devolve o texto. Mudar a assinatura quebraria o contrato combinado com a rota (#14).
+- **O que fizemos:** um `ContextVar` (`llm_attempts`) que o `chat` atualiza a cada tentativa. A rota lê o valor depois do `await`, com sucesso ou erro (PR #42, sugestão da Maria Eduarda na revisão).
+- **Por que não uma variável global:** o servidor atende várias requisições ao mesmo tempo no mesmo processo. Uma global seria sobrescrita por outra requisição no meio do caminho. Com o `ContextVar`, cada requisição roda na sua própria task do asyncio, com uma cópia do contexto, e não vê o valor das outras. Há um teste com duas chamadas concorrentes, uma com retry e outra sem, que confirma 2 e 1 tentativas.
+- **Para explicar:** é a versão asyncio da "variável por thread" (thread-local). Mostra que a concorrência foi pensada também nos detalhes, não só nas sessões.
+
+---
+
+## Configuração
+
+### 12. O padrão do `LLM_EXTRA_BODY` no PRD era `{}` (14/11)
+
+- **O risco:** a tabela 7.1 do PRD dava `{}` como padrão do `LLM_EXTRA_BODY`, e o `config.py` (#6) ia seguir a tabela. Se o `.env` de produção esquecesse essa linha, a DeepInfra voltaria a raciocinar escondido e a devolver respostas cortadas (achado 7).
+- **Como apareceu:** na revisão do #36, a Maria Eduarda avisou que ia usar `{}` como padrão, seguindo o PRD.
+- **O que fizemos:** o padrão no PRD passa a ser `{"reasoning_effort":"none"}`, que vale para os dois provedores (PR #43). Assim, o caso seguro é o padrão.
+- **Para explicar:** configuração padrão deve ser a segura. Errar o `.env` não pode quebrar a demo em silêncio.
+
+---
+
+## Processo
+
+### 13. Apagar a branch base fecha o PR empilhado (14/11)
+
+- **O que aconteceu:** o PR do `LLMClient` (#38) estava empilhado sobre o das personas (#37). No merge do #37, a opção de apagar a branch removeu a base do #38, e o GitHub fechou o #38 sozinho.
+- **O que fizemos:** atualizamos a branch com a `main` e abrimos o #42 com a base na `main`, apontando para a revisão do #38.
+- **Lição:** com `delete_branch_on_merge` ligado, o PR empilhado deve ter a base trocada para a `main` antes do merge do PR de baixo. Ou é melhor evitar PRs empilhados.
 
 ---
 
 ## Perguntas que o professor pode fazer
 
 - **Por que Qwen3 e não GPT ou Gemini?** É open weight, bom em português e barato ou grátis via API compatível com a OpenAI. A comparação está nos achados 6 e 7.
+- **Por que a comparação só tem modelos Qwen?** A família foi decidida antes, na seção 3 do PRD: open weight, boa em português, disponível nos dois provedores com API compatível com a OpenAI e de graça no Groq. A comparação escolheu o tamanho e a versão dentro dessa família, com o timeout de 20 s e o custo como restrições. Outras famílias (Llama, Mistral, DeepSeek) não foram testadas; o `scripts/compare_models.py` compara qualquer modelo da DeepInfra só mudando a lista `MODELS`.
 - **Por que dois provedores?** O Groq é grátis e rápido para o desenvolvimento, mas o plano gratuito não aguenta a turma (achados 2 e 3). A DeepInfra é paga, sem esse limite, e a troca é só o `.env`.
 - **O que acontece se o LLM demorar ou cair?** Timeout de 20 s por tentativa vira 504. 429, 5xx e erro de conexão têm até 2 novas tentativas (1 s e 2 s) e depois viram 503. Outros 4xx viram 503 sem retry. O achado 4 é um caso real de timeout.
 - **O chatbot pode dar informação jurídica errada?** Pode (achado 5). Por isso a persona não cita artigos e sempre lembra que não substitui um advogado.
