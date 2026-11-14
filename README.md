@@ -18,6 +18,7 @@ Chatbot multiusuário com LLM da Equipe B para a 2ª avaliação (apresentação
 - [PRD / spec técnica](docs/prd-chatbot-multiusuario.md)
 - [Plano do front-end](docs/plano-frontend.md)
 - [Regras para agentes e commits](AGENTS.md)
+- [Achados e aprendizados](docs/achados.md): problemas e descobertas do desenvolvimento, para estudar para a apresentação
 
 ## Modelo LLM
 
