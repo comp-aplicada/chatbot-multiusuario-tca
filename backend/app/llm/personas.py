@@ -4,10 +4,12 @@ As chaves `geral` e `juridico` fazem parte do contrato com o front-end e não
 podem ser renomeadas. Todo prompt termina com `/no_think` para desligar o modo
 de raciocínio do Qwen3.
 
-O limite de palavras existe porque o Qwen3-32B na DeepInfra gera cerca de 27
-tokens/s: uma resposta de 1.000 tokens leva quase 40 s e estoura o
-LLM_TIMEOUT_S de 20 s. A persona jurídica não cita números de artigos porque o
-modelo inventa artigos e leis inexistentes.
+O limite de palavras mantém as respostas bem abaixo do LLM_TIMEOUT_S de 20 s.
+Ele surgiu com o Qwen3-32B, que gera cerca de 27 tokens/s (1.000 tokens levavam
+quase 40 s). O Qwen3.8-27B da demo gera cerca de 50 tokens/s, e com o limite as
+respostas jurídicas ficam em torno de 6 s; o limite também poupa a cota de
+tokens de saída do Groq gratuito. A persona jurídica não cita números de artigos
+porque o modelo inventa artigos e leis inexistentes.
 """
 
 PERSONAS: dict[str, str] = {

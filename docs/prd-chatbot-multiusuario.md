@@ -339,7 +339,7 @@ Resposta:
 | `LLM_BASE_URL` | `https://api.groq.com/openai/v1` | Endpoint compatível com OpenAI |
 | `LLM_API_KEY` | (secreto) | Chave do provedor |
 | `LLM_MODEL` | `qwen/qwen3.8-27b` | ID do modelo no provedor |
-| `LLM_EXTRA_BODY` | `{}` | JSON repassado como `extra_body` (no Groq: `{"reasoning_effort":"none"}`) |
+| `LLM_EXTRA_BODY` | `{"reasoning_effort":"none"}` | JSON repassado como `extra_body`. Desliga o raciocínio do Qwen3.8 nos dois provedores; sem ele, a DeepInfra devolve respostas cortadas (`docs/achados.md`, achado 7). Use `{}` só para um modelo que não aceite o parâmetro |
 | `LLM_TIMEOUT_S` | `20` | Timeout por tentativa |
 | `LLM_TOTAL_TIMEOUT_S` | `60` | Limite da requisição inteira: fila do lock + tentativas + esperas |
 | `LLM_MAX_RETRIES` | `2` | Retries em 429, 5xx e erro de conexão |
