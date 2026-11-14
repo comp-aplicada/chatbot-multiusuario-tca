@@ -41,7 +41,7 @@ O enunciado exige justificativa técnica da escolha de modelo e framework. Estes
 | Tema | **Assistente genérico + persona opcional** ("geral" ou "juridico") | Cumpre "perguntas genéricas" e a persona dá um diferencial sem fugir do requisito; trocar a persona só troca o *system prompt* | Puramente jurídico (risco de fugir do enunciado) |
 | Backend | **Python 3.12 + FastAPI + Uvicorn** | Assíncrono nativo (asyncio): enquanto uma requisição espera o LLM (I/O), o servidor atende outras, o que cobre as conexões concorrentes. Swagger automático cobre a documentação | Flask (síncrono), Node/Express (Swagger manual) |
 | Protocolo | **REST (JSON sobre HTTPS)** | Corresponde ao "cliente HTTP" do enunciado; testável com `curl` e Swagger; simples de explicar | WebSocket, SSE |
-| LLM | **Qwen3** (open weight, Alibaba): `qwen3.8-27b` no Groq e `Qwen3-32B` na DeepInfra | Modelo aberto de boa qualidade em português, com contexto amplo e custo zero ou baixo | GPT/Gemini (proprietários e pagos), rodar local (inviável na EC2) |
+| LLM | **Qwen3** (open weight, Alibaba): `qwen3.8-27b` no Groq e `Qwen3.8-27B` na DeepInfra | Modelo aberto de boa qualidade em português, com contexto amplo e custo zero ou baixo | GPT/Gemini (proprietários e pagos), rodar local (inviável na EC2) |
 | Provedor | **Groq** (principal, free tier) e **DeepInfra** (reserva paga) | Groq é gratuito e tem latência muito baixa; DeepInfra elimina o risco de rate limit na demo | OpenRouter free (limite menor, latência variável) |
 | SDK | **`openai` (Python, AsyncOpenAI)** | Groq e DeepInfra expõem API compatível com OpenAI, então trocar de provedor é só mudar o `.env` | LangChain (camada desnecessária para chat simples) |
 | Sessões | **Memória do processo**, atrás da interface `SessionStore` | Simples e rápido; a interface permite trocar por Redis sem mexer nas rotas | Redis, SQLite |
@@ -68,7 +68,7 @@ O enunciado exige justificativa técnica da escolha de modelo e framework. Estes
  └──────────────────────────────────┬──────────────────────────────────────┘
                                     │ HTTPS
                                     ▼
-            Groq (Qwen3.8-27B)  │  DeepInfra (Qwen3-32B, via .env)
+            Groq (Qwen3.8-27B)  │  DeepInfra (Qwen3.8-27B, via .env)
 ```
 
 ### 3.1 Estrutura do repositório
@@ -344,9 +344,9 @@ Resposta:
 | `HISTORY_WINDOW` | `20` | Mensagens enviadas ao LLM |
 | `MESSAGE_MAX_CHARS` | `2000` | Tamanho máximo da pergunta |
 
-**Provedor por fase:** o desenvolvimento usa o **Groq** (gratuito). Em 10/11 a produção troca para a **DeepInfra**, e a apresentação roda nela, para eliminar o risco de rate limit com a turma acessando: `LLM_BASE_URL=https://api.deepinfra.com/v1/openai`, `LLM_MODEL=Qwen/Qwen3-32B`, `LLM_EXTRA_BODY={}`. O Eduardo confirma os IDs exatos nos painéis do Groq e da DeepInfra até 05/11, atualiza o `.env.example` e carrega US$ 5 de crédito na DeepInfra até 09/11.
+**Provedor por fase:** o desenvolvimento usa o **Groq** (gratuito). Em 10/11 a produção troca para a **DeepInfra**, e a apresentação roda nela, para eliminar o risco de rate limit com a turma acessando: `LLM_BASE_URL=https://api.deepinfra.com/v1/openai`, `LLM_MODEL=Qwen/Qwen3.8-27B`, `LLM_EXTRA_BODY={"reasoning_effort":"none"}`. O Eduardo confirma os IDs exatos nos painéis do Groq e da DeepInfra até 05/11, atualiza o `.env.example` e carrega US$ 5 de crédito na DeepInfra até 09/11.
 
-**Modelo no Groq:** o Groq desligou o `qwen/qwen3-32b` em 17/07/2026. No desenvolvimento, usa-se o `qwen/qwen3.8-27b` (preview), com o raciocínio desligado por `reasoning_effort: none` no `LLM_EXTRA_BODY`. A DeepInfra continua com o `Qwen/Qwen3-32B`.
+**Modelo no Groq:** o Groq desligou o `qwen/qwen3-32b` em 17/07/2026. No desenvolvimento, usa-se o `qwen/qwen3.8-27b` (preview), com o raciocínio desligado por `reasoning_effort: none` no `LLM_EXTRA_BODY`. Na DeepInfra, a comparação de 14/11 (`docs/escolha-do-modelo.md`) trocou o `Qwen/Qwen3-32B` pelo mesmo `Qwen/Qwen3.8-27B`, mais rápido e mais correto nas perguntas jurídicas; ele também precisa de `reasoning_effort: none`.
 
 **Limites do Groq:** até 05/11, o Eduardo registra no README os limites do free tier do Groq para o modelo: requisições por minuto, tokens por minuto e requisições por dia. Se 10 usuários × 2 mensagens não couberem no limite de tokens por minuto, o marco de 08/11 roda com `--users 5`, e o teste com `--users 10` fica para 10/11, já na DeepInfra. No relatório do `concurrency_test.py`, um 503 causado por rate limit do provedor aparece como "rate limit do provedor", separado de uma falha de isolamento.
 
