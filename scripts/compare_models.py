@@ -147,6 +147,9 @@ def main() -> None:
     models = [m for m in MODELS if os.environ.get(PROVIDERS[m[0]]["key_env"])]
     if args.models:
         models = [m for m in models if m[1] in args.models]
+    if not models:
+        keys = " ou ".join(p["key_env"] for p in PROVIDERS.values())
+        parser.error(f"nenhum modelo para rodar: defina {keys} (e confira o --models)")
     with ThreadPoolExecutor(len(models)) as pool:
         runs = list(pool.map(lambda m: run_model(*m, personas, args.max_tokens), models))
 
