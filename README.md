@@ -90,6 +90,7 @@ Cada conexão recebe um UUID v4 e um histórico só dela, guardados na memória 
 - [Enunciado do trabalho](docs/tarefa.md)
 - [PRD / spec técnica](docs/prd-chatbot-multiusuario.md)
 - [Plano do front-end](docs/plano-frontend.md)
+- [Roteiro do bloco do front e da demo](docs/apresentacao-frontend.md)
 - [Regras para agentes e commits](AGENTS.md)
 - [Achados e aprendizados](docs/achados.md): problemas e descobertas do desenvolvimento, para estudar para a apresentação
 
