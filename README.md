@@ -85,6 +85,49 @@ Com um LLM falso que demora 1 s, 10 sessões perguntam ao mesmo tempo e terminam
 
 Cada conexão recebe um UUID v4 e um histórico só dela, guardados na memória do processo. Há dois níveis de lock: um lock global, segurado só durante leituras e escritas no dicionário de sessões (operações rápidas, sem esperar a rede), e um lock por sessão, segurado durante toda a pergunta. Assim, duas perguntas simultâneas na mesma sessão ficam em fila e o histórico mantém a ordem, enquanto sessões diferentes nunca se bloqueiam: enquanto uma espera o LLM, o asyncio atende as outras. Pergunta e resposta são gravadas juntas, então uma falha do LLM não deixa pergunta sem resposta no histórico. Uma sessão expira depois de `SESSION_TTL_MIN` minutos sem atividade (30 por padrão), e uma tarefa de fundo remove as expiradas a cada 60 s, pulando as que estão no meio de uma resposta; ao passar de `SESSION_MAX`, a de atividade mais antiga é removida. Como as sessões vivem na memória de um processo, o Uvicorn roda com **1 worker**: com mais de um, cada processo teria o próprio dicionário e o usuário cairia em um worker que não conhece a sessão dele. A concorrência vem do asyncio, não de vários processos. Para escalar horizontalmente, basta trocar o `SessionStore` por uma implementação com Redis, sem mexer nas rotas.
 
+## Front-end: como rodar
+
+A interface fica em `frontend/` e precisa do **Node 22.22.2 ou mais novo** (ou 24.15+, ou 26+). No Node 20 o build passa, mas o Vitest e o jsdom não rodam. Detalhes e scripts em [`frontend/README.md`](frontend/README.md).
+
+### 1. Subir a API e o front
+
+Com a API rodando em `http://localhost:8000` (seção anterior), em outro terminal:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Abra <http://localhost:5173>. O Vite repassa tudo que começa com `/api` para a porta 8000, então o front usa URLs relativas e não precisa de CORS. Em produção, o Nginx faz o mesmo papel no mesmo domínio.
+
+Para ver o multiusuário funcionando, abra duas ou mais abas: cada uma cria a própria sessão e mostra os 8 primeiros caracteres do ID no topo. Clicar no ID copia o ID completo.
+
+### 2. Rodar os testes e as checagens
+
+```bash
+npm test            # Vitest com fetch mockado, sem precisar da API
+npm run typecheck   # TypeScript em modo strict
+npm run lint        # oxlint, com any proibido
+npm run build       # gera frontend/dist, o que o Nginx serve
+```
+
+| Arquivo | O que cobre |
+|---|---|
+| `tests/client.test.ts` | Cliente da API: formato de erro da API, exceção de rede e 502 em HTML viram erros padronizados |
+| `tests/chatReducer.test.ts` | Estado da conversa: envio, resposta, erro, "Tentar de novo", sessão expirada e nova conversa |
+| `tests/startSession.test.tsx` | Criar sessão, ID no `sessionStorage`, badge, copiar o ID, F5 e "Nova conversa" |
+| `tests/sendMessage.test.tsx` | Envio, input desabilitado enquanto aguarda, Enter e Shift+Enter, contador de 2000 caracteres |
+| `tests/markdown.test.tsx` | Markdown nas respostas e HTML do modelo exibido como texto, sem executar |
+| `tests/errors.test.tsx` | 404 ao recarregar e no chat, 422, 503, 504, 500, rede e 502 do Nginx, com "Tentar de novo" |
+
+### Como o front trata sessão e erros
+
+- O `session_id` fica no `sessionStorage`: cada aba é um usuário diferente e o F5 recarrega o histórico com `GET /api/sessions/{id}`.
+- Se a sessão sumiu (expirou ou a API reiniciou), o 404 apaga o ID e volta para a tela inicial com "Sua sessão expirou".
+- `src/api/client.ts` é o único lugar com `fetch`. Toda falha vira um `ApiError`: erros da API mostram a `message` dela, e rede fora ou 502 do Nginx mostram "Não foi possível falar com o servidor. Tente novamente.", sempre com "Tentar de novo", que reenvia o mesmo texto.
+- As respostas do assistente são renderizadas com `react-markdown` sem `rehype-raw`, então HTML vindo do modelo aparece como texto e nunca executa.
+
 ## Documentos
 
 - [Enunciado do trabalho](docs/tarefa.md)
