@@ -6,16 +6,19 @@ export const STORAGE_KEY = 'chat.session_id'
 
 export interface Persona {
   label: string
+  shortLabel: string
   description: string
 }
 
 export const PERSONAS: Readonly<Record<PersonaId, Persona>> = {
   geral: {
     label: 'Assistente geral',
+    shortLabel: 'Geral',
     description: 'Perguntas sobre qualquer assunto, com respostas claras e objetivas.',
   },
   juridico: {
     label: 'Orientação jurídica',
+    shortLabel: 'Jurídico',
     description: 'Dúvidas gerais sobre o direito brasileiro, em linguagem acessível.',
   },
 }
