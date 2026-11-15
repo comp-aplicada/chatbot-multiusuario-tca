@@ -6,6 +6,7 @@ import uuid
 import httpx
 import pytest
 
+from app.config import get_settings
 from app.main import app
 
 ISO_UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
@@ -66,6 +67,61 @@ async def test_criar_sessao_com_persona_invalida_responde_422(client):
     response = await client.post("/api/sessions", json={"persona": "medico"})
 
     assert response.status_code == 422
+    assert response.json() == {
+        "error": {
+            "code": "invalid_request",
+            "message": "Requisição inválida: persona deve ser 'geral' ou 'juridico'.",
+        }
+    }
+
+
+async def test_pergunta_vazia_responde_422_no_formato_padrao(client):
+    created = await create_session(client)
+
+    response = await client.post(
+        f"/api/sessions/{created['session_id']}/messages", json={"content": "  "}
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "error": {
+            "code": "invalid_request",
+            "message": "Requisição inválida: content não pode ficar vazio.",
+        }
+    }
+
+
+async def test_pergunta_e_ecoada_sem_espacos_nas_pontas(client):
+    created = await create_session(client)
+
+    response = await client.post(
+        f"/api/sessions/{created['session_id']}/messages", json={"content": "  oi \n"}
+    )
+
+    assert response.json()["reply"]["content"] == "eco: oi"
+
+
+async def test_health_mostra_o_modelo_das_configuracoes(client):
+    response = await client.get("/api/health")
+
+    assert response.json()["model"] == get_settings().llm_model
+
+
+async def test_swagger_mostra_os_modelos_do_contrato(client):
+    openapi = (await client.get("/api/openapi.json")).json()
+
+    assert {
+        "SessionCreateRequest",
+        "SessionCreated",
+        "SessionDetail",
+        "MessageOut",
+        "MessageRequest",
+        "MessageResponse",
+        "Health",
+        "ErrorResponse",
+    } <= set(openapi["components"]["schemas"])
+    messages = openapi["paths"]["/api/sessions/{session_id}/messages"]["post"]
+    assert set(messages["responses"]) == {"200", "404", "422", "503", "504"}
 
 
 async def test_historico_devolve_duas_mensagens_fixas(client):
@@ -172,3 +228,17 @@ async def test_swagger_e_openapi_ficam_sob_api(client):
         "/api/sessions/{session_id}",
         "/api/sessions/{session_id}/messages",
     }
+
+
+async def test_swagger_so_documenta_os_erros_do_contrato(client):
+    openapi = (await client.get("/api/openapi.json")).json()
+    paths = openapi["paths"]
+
+    assert set(paths["/api/health"]["get"]["responses"]) == {"200"}
+    assert set(paths["/api/sessions"]["post"]["responses"]) == {"201", "422"}
+    session = paths["/api/sessions/{session_id}"]
+    assert set(session["get"]["responses"]) == {"200", "404"}
+    assert set(session["delete"]["responses"]) == {"204", "404"}
+    # O formato de erro do FastAPI ({"detail": ...}) não é usado pela API.
+    assert "HTTPValidationError" not in openapi["components"]["schemas"]
+    assert "ValidationError" not in openapi["components"]["schemas"]
