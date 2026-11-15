@@ -1,137 +1,109 @@
-"""Stub da API do chatbot: as 5 rotas do contrato (PRD, seção 5) com respostas fixas.
+"""Aplicação FastAPI do chatbot multiusuário (PRD, seções 3 e 4.5).
 
-Serve para o front, a infra e os scripts programarem contra o formato real
-antes de a lógica existir. As sessões reais (#7) e o LLM (#8) entram depois.
+Sobe com 1 worker: as sessões ficam na memória do processo (seção 4.4).
+
+    uvicorn app.main:app --port 8000 --no-access-log
 """
 
-from datetime import datetime, timezone
-from uuid import uuid4
+import asyncio
+import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager, suppress
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 
-from app.config import get_settings
-from app.errors import SessionNotFound, register_error_handlers
+from app.config import Settings, get_settings
+from app.errors import LLMUnavailable, register_error_handlers
+from app.llm.client import LLMClient
 from app.openapi import use_contract_errors
-from app.schemas import (
-    ErrorResponse,
-    Health,
-    MessageOut,
-    MessageRequest,
-    MessageResponse,
-    SessionCreated,
-    SessionCreateRequest,
-    SessionDetail,
-)
+from app.routes.sessions import ChatLLM, router
+from app.sessions.store import SessionStore
 
-app = FastAPI(
-    title="Chatbot Multiusuário (TCA, Equipe B)",
-    docs_url="/api/docs",
-    openapi_url="/api/openapi.json",
-    redoc_url=None,
-)
-register_error_handlers(app)
-use_contract_errors(app)
+logger = logging.getLogger(__name__)
 
-# Erros documentados no Swagger, no formato da seção 5.6 do PRD.
-NOT_FOUND = {404: {"model": ErrorResponse, "description": "Sessão não encontrada"}}
-INVALID = {422: {"model": ErrorResponse, "description": "Requisição inválida"}}
-LLM_ERRORS = {
-    503: {"model": ErrorResponse, "description": "Modelo indisponível"},
-    504: {"model": ErrorResponse, "description": "Modelo demorou demais"},
-}
-
-# Sessões criadas. Basta para o 404 funcionar.
-sessions: dict[str, SessionCreated] = {}
+CLEANUP_INTERVAL_S = 60
 
 
-def now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-def find(session_id: str) -> SessionCreated:
-    try:
-        return sessions[session_id]
-    except KeyError:
-        raise SessionNotFound() from None
-
-
-@app.get("/api/health", response_model=Health, tags=["health"])
-async def health() -> Health:
-    return Health(active_sessions=len(sessions), model=get_settings().llm_model)
-
-
-@app.post(
-    "/api/sessions",
-    status_code=201,
-    response_model=SessionCreated,
-    responses=INVALID,
-    tags=["sessions"],
-    summary="Conectar: cria uma sessão com ID único",
-)
-async def create_session(body: SessionCreateRequest | None = None) -> SessionCreated:
-    session = SessionCreated(
-        session_id=str(uuid4()),
-        persona=body.persona if body else "geral",
-        created_at=now(),
+def configure_logging() -> None:
+    """Logs da aplicação em INFO no terminal (são os que aparecem na demo)."""
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
     )
-    sessions[session.session_id] = session
-    return session
+    # O httpx loga uma linha por chamada ao provedor; fica só o que é nosso.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
-@app.get(
-    "/api/sessions/{session_id}",
-    response_model=SessionDetail,
-    responses=NOT_FOUND,
-    tags=["sessions"],
-    summary="Histórico da sessão",
-)
-async def get_session(session_id: str) -> SessionDetail:
-    session = find(session_id)
-    return SessionDetail(
-        session_id=session_id,
-        persona=session.persona,
-        created_at=session.created_at,
-        last_activity=now(),
-        messages=[
-            MessageOut(
-                role="user",
-                content="O que é computação em nuvem?",
-                created_at=session.created_at,
-            ),
-            MessageOut(
-                role="assistant",
-                content="Computação em nuvem é o uso de servidores pela internet.",
-                created_at=session.created_at,
-            ),
-        ],
+class UnconfiguredLLM:
+    """Usado quando LLM_API_KEY não foi definida: toda pergunta responde 503.
+
+    Assim a API sobe sem a chave (health, sessões e Swagger funcionam) e o
+    problema aparece no log, em vez de o servidor não iniciar.
+    """
+
+    async def chat(self, persona: str, history: object, question: str) -> str:
+        raise LLMUnavailable()
+
+
+def build_llm(settings: Settings) -> ChatLLM:
+    if not settings.llm_api_key:
+        logger.warning(
+            "llm_api_key_missing: defina LLM_API_KEY no .env; "
+            "até lá, toda pergunta responde 503"
+        )
+        return UnconfiguredLLM()
+    return LLMClient(settings)
+
+
+async def cleanup_loop(store: SessionStore, interval_s: float) -> None:
+    """Remove as sessões expiradas a cada `interval_s` segundos."""
+    while True:
+        await asyncio.sleep(interval_s)
+        try:
+            removed = await store.cleanup_expired()
+        except Exception:
+            logger.exception("cleanup_failed")
+            continue
+        if removed:
+            logger.info("cleanup removed=%d", removed)
+
+
+def create_app(
+    settings: Settings | None = None,
+    *,
+    cleanup_interval_s: float = CLEANUP_INTERVAL_S,
+) -> FastAPI:
+    settings = settings or get_settings()
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        configure_logging()
+        # Instâncias únicas do processo, injetadas nas rotas com Depends.
+        app.state.settings = settings
+        app.state.store = SessionStore(
+            ttl_min=settings.session_ttl_min, max_sessions=settings.session_max
+        )
+        app.state.llm = build_llm(settings)
+        cleanup = asyncio.create_task(
+            cleanup_loop(app.state.store, cleanup_interval_s)
+        )
+        try:
+            yield
+        finally:
+            cleanup.cancel()
+            with suppress(asyncio.CancelledError):
+                await cleanup
+
+    app = FastAPI(
+        title="Chatbot Multiusuário (TCA, Equipe B)",
+        docs_url="/api/docs",
+        openapi_url="/api/openapi.json",
+        redoc_url=None,
+        lifespan=lifespan,
     )
+    register_error_handlers(app)
+    use_contract_errors(app)
+    app.include_router(router)
+    return app
 
 
-@app.post(
-    "/api/sessions/{session_id}/messages",
-    response_model=MessageResponse,
-    responses={**NOT_FOUND, **INVALID, **LLM_ERRORS},
-    tags=["sessions"],
-    summary="Perguntar ao chatbot",
-)
-async def send_message(session_id: str, body: MessageRequest) -> MessageResponse:
-    find(session_id)
-    return MessageResponse(
-        session_id=session_id,
-        reply=MessageOut(
-            role="assistant", content=f"eco: {body.content}", created_at=now()
-        ),
-    )
-
-
-@app.delete(
-    "/api/sessions/{session_id}",
-    status_code=204,
-    responses=NOT_FOUND,
-    tags=["sessions"],
-    summary="Encerrar a sessão",
-)
-async def delete_session(session_id: str) -> Response:
-    find(session_id)
-    del sessions[session_id]
-    return Response(status_code=204)
+app = create_app()
