@@ -1,6 +1,6 @@
 # Plano do front-end (Izaías)
 
-> Itens marcados com `[x]` já foram executados. Primeiro passo pendente: **Fase 0, item "Mandar no grupo o link do repo e do board"**, e depois abrir o PR da Fase 1.
+> Itens marcados com `[x]` já foram executados. Primeiro passo pendente: **revisão do Eduardo nos PRs das fases 1 a 4**; depois, a Fase 5, que depende do deploy do Pedro (#20).
 
 - **Dono:** Izaías de Melo Lima Morais
 - **Revisor dos PRs:** Eduardo (rodízio da seção 9.1 do PRD)
@@ -54,16 +54,18 @@ frontend/
 ├── vite.config.ts            # proxy /api -> http://localhost:8000 e config do Vitest
 ├── src/
 │   ├── main.tsx
-│   ├── App.tsx               # decide entre StartScreen e ChatWindow
-│   ├── index.css             # @import "tailwindcss"
+│   ├── App.tsx               # decide entre StartScreen, LoadingScreen e ChatWindow
+│   ├── index.css             # @import "tailwindcss" e estilos do Markdown
 │   ├── constants.ts          # MAX_CHARS, PERSONAS, STORAGE_KEY, mensagens fixas
 │   ├── api/
 │   │   ├── client.ts         # ÚNICO lugar com fetch
-│   │   └── types.ts          # tipos do contrato da API (seção 5 do PRD)
+│   │   └── types.ts          # tipos do contrato da API (seção 5 do PRD) e type guards
 │   ├── state/
-│   │   └── chatReducer.ts    # estado e ações da conversa
+│   │   ├── chatReducer.ts    # estado e ações da conversa
+│   │   └── storedSession.ts  # leitura e escrita do session_id no sessionStorage
 │   └── components/
 │       ├── StartScreen.tsx
+│       ├── LoadingScreen.tsx # F5 carregando o histórico, ou erro com "Tentar de novo"
 │       ├── ChatWindow.tsx
 │       ├── SessionBadge.tsx
 │       ├── MessageList.tsx
@@ -71,7 +73,9 @@ frontend/
 │       └── MessageInput.tsx
 └── tests/
     ├── setup.ts
+    ├── helpers.ts            # respostas da API e fetch mockado
     ├── client.test.ts
+    ├── chatReducer.test.ts
     ├── startSession.test.tsx
     ├── sendMessage.test.tsx
     ├── markdown.test.tsx
@@ -234,7 +238,7 @@ Branches no padrão `feat/frontend-<descricao>`, um PR por fase, revisado pelo E
 - [x] Scripts `dev`, `build` (`tsc -b && vite build`), `preview`, `test`, `typecheck`, `lint` no `package.json`
 - [x] Projeto em TypeScript: `tsconfig` com `strict`, testes incluídos no typecheck e `any` proibido no lint
 - [x] `npm run build` gera `dist/` sem erro (o Pedro depende disso no `web.Dockerfile`)
-- [ ] Abrir o PR da branch `feat/frontend-setup` para a `main`, com revisão do Eduardo
+- [x] Abrir o PR da branch `feat/frontend-setup` para a `main` (#35), com revisão do Eduardo. Ajustes da revisão aplicados; falta a nova aprovação dele
 
 ### Fase 2. Cliente da API e estado · qua 11/11 · `feat/frontend-api-client` · #5
 
@@ -244,20 +248,22 @@ Branches no padrão `feat/frontend-<descricao>`, um PR por fase, revisado pelo E
 - [x] Testes de `client.test.ts` e `chatReducer.test.ts`
 - [x] Rodar contra a API da Maria Eduarda (`uvicorn` local, com LLM falso) e conferir o formato das respostas, inclusive 404, 422, 503 e 504
 
+As fases 3 e 4 ficaram na mesma branch e no mesmo PR, porque o tratamento de erros mora nos mesmos componentes das telas. Os commits continuam separados por assunto.
+
 ### Fase 3. Telas · sex 13/11 · `feat/frontend-chat` · #13
 
-- [ ] `StartScreen` com escolha de persona
-- [ ] `ChatWindow`, `SessionBadge`, `MessageList`, `MessageBubble`, `MessageInput`
-- [ ] Persistência do ID em `sessionStorage` e recarga do histórico no F5
-- [ ] Botão "Nova conversa"
-- [ ] Layout responsivo validado em 360px no DevTools
+- [x] `StartScreen` com escolha de persona
+- [x] `ChatWindow`, `SessionBadge`, `MessageList`, `MessageBubble`, `MessageInput`
+- [x] Persistência do ID em `sessionStorage` e recarga do histórico no F5
+- [x] Botão "Nova conversa"
+- [x] Layout responsivo validado em 360px, 390px e 1280px no Chrome, contra a API local com LLM falso
 
-### Fase 4. Erros e testes · seg 16/11 · `feat/frontend-erros` · #15 e #16
+### Fase 4. Erros e testes · seg 16/11 · `feat/frontend-chat` · #15 e #16
 
-- [ ] Fluxo de sessão expirada (404 no load e no envio)
-- [ ] Mensagem com erro e "Tentar de novo" para 422, 503, 504, 500 e rede
-- [ ] Todos os testes da seção 8 passando
-- [ ] Seção "Front-end: como rodar" no README
+- [x] Fluxo de sessão expirada (404 no load e no envio)
+- [x] Mensagem com erro e "Tentar de novo" para 422, 503, 504, 500 e rede
+- [x] Todos os testes da seção 8 passando (49 testes, no Node 22.22.2 e no 26)
+- [x] Seção "Front-end: como rodar" no README
 
 ### Fase 5. Integração com produção · qua 18/11 · #21
 

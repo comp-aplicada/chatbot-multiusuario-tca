@@ -21,6 +21,12 @@ Quando aparecer um achado novo, ele entra aqui, no tópico certo, com data, núm
 | 11 | Número de tentativas do LLM para o log, sem mudar a interface | A rota precisa logar `attempts=` | `ContextVar` isolado por requisição |
 | 12 | O padrão do `LLM_EXTRA_BODY` no PRD era `{}` | Um `.env` de produção sem essa linha faria a DeepInfra cortar as respostas | Padrão passa a ser `{"reasoning_effort":"none"}` |
 | 13 | Apagar a branch base fecha o PR empilhado | O #38 foi fechado sozinho no merge do #37 | PR reaberto como #42; evitar PRs empilhados |
+| 14 | Vitest 5 e jsdom 31 não rodam no Node 20 | O build passava, mas nenhum teste do front rodava no `node:20` do Dockerfile | `engines.node` em Node 22+ e `node:22` no `web.Dockerfile` |
+| 15 | Resposta atrasada da conversa antiga derrubava a conversa nova | "Nova conversa" no meio de uma pergunta jogava o usuário para "Sua sessão expirou" | O front ignora respostas de uma sessão que não é mais a da aba |
+| 16 | Reiniciar o container `api` apaga todas as sessões | Quem estiver conversando cai em "Sua sessão expirou" | Não fazer deploy durante a demo |
+| 17 | HTML do modelo na resposta | Um `<script>` na resposta poderia executar no navegador | `react-markdown` sem `rehype-raw` mostra o HTML como texto, com teste |
+| 18 | Com o `sessionStorage` bloqueado, o chat travava em "digitando…" | Navegadores com cookies bloqueados descartavam toda resposta | A sessão atual fica num `useRef`; o `sessionStorage` serve só para o F5 |
+| 19 | "Duplicar aba" copia o `sessionStorage` | As duas abas ficam com o mesmo ID e viram o mesmo usuário | Na demo, abrir cada aba nova digitando a URL |
 
 ---
 
@@ -142,6 +148,48 @@ Quando aparecer um achado novo, ele entra aqui, no tópico certo, com data, núm
 - **O que aconteceu:** o PR do `LLMClient` (#38) estava empilhado sobre o das personas (#37). No merge do #37, a opção de apagar a branch removeu a base do #38, e o GitHub fechou o #38 sozinho.
 - **O que fizemos:** atualizamos a branch com a `main` e abrimos o #42 com a base na `main`, apontando para a revisão do #38.
 - **Lição:** com `delete_branch_on_merge` ligado, o PR empilhado deve ter a base trocada para a `main` antes do merge do PR de baixo. Ou é melhor evitar PRs empilhados.
+
+---
+
+## Front-end
+
+### 14. Vitest 5 e jsdom 31 não rodam no Node 20 (15/11)
+
+- **O que aconteceu:** o `package.json` do front pedia Node `>=20.19`, a exigência do Vite 8. Na revisão do #35, o Eduardo rodou no `node:20`, a imagem prevista para o build do `web.Dockerfile`: o `npm run build` passou, mas o Vitest não rodou nenhum teste (`Failed to start forks worker`).
+- **Descoberta:** as dependências de teste travadas no lockfile pedem mais que o Vite: `vitest` 5.1 pede `^22.12`, `jsdom` 31 pede `^22.22.2 || ^24.15 || >=26` e o `undici` pede `>=22.19`.
+- **O que fizemos:** `engines.node` passou para `^22.22.2 || ^24.15.0 || >=26`, o PRD e o plano apontam `node:22` no `web.Dockerfile`, e os testes foram rodados no Node 22.22.2 e no 26 (PR #35).
+- **Para explicar:** "o build passa" não garante que os testes rodam. A versão mínima do runtime vem da dependência mais exigente, não da ferramenta principal.
+
+### 15. Resposta atrasada da conversa antiga derrubava a conversa nova (15/11)
+
+- **O cenário:** o usuário manda uma pergunta e, antes da resposta, clica em "Nova conversa". O front chama `DELETE` na sessão, e o backend faz a pergunta em andamento terminar em 404 (teste de concorrência do #17). Se o usuário já tiver começado outra conversa, esse 404 atrasado levava ao fluxo de sessão expirada, que apagava o ID novo e mostrava "Sua sessão expirou".
+- **O que fizemos:** quando uma resposta chega, o front compara a sessão da pergunta com a que está salva no `sessionStorage` e descarta a resposta se não for mais a mesma. Um teste em `errors.test.tsx` reproduz o cenário e falha se essa checagem for removida.
+- **Para explicar:** é o mesmo problema de concorrência do backend, só que no navegador: uma requisição assíncrona antiga não pode mexer no estado de quem já seguiu em frente.
+
+### 16. Reiniciar o container `api` apaga todas as sessões (15/11)
+
+- **O que aconteceu:** testando o front com a API local, derrubar a API mostrou a mensagem genérica com "Tentar de novo", como previsto. Ao subir a API de novo, o "Tentar de novo" levou para "Sua sessão expirou", porque as sessões vivem só na memória do processo.
+- **Impacto na demo:** um deploy ou restart do container durante a apresentação desconecta toda a turma.
+- **O que fizemos:** o front trata os dois casos sem quebrar a tela, e fica a regra de não fazer deploy durante a demo. Persistir sessões (Redis) está fora do escopo.
+
+### 17. HTML vindo do modelo não executa (15/11)
+
+- **O risco:** o modelo pode devolver HTML na resposta, por acidente ou por injeção no prompt, e um `<script>` ou um `<img onerror>` executaria no navegador de quem lê.
+- **O que fizemos:** as respostas passam pelo `react-markdown` sem `rehype-raw`. O HTML aparece como texto e o Markdown (negrito, listas, código) continua funcionando. Os testes de `markdown.test.tsx` conferem que nenhum `<script>` nem `<img>` entra no DOM. As mensagens do usuário são texto puro.
+- **Para explicar:** é a defesa contra XSS: o conteúdo do modelo é tratado como dado, nunca como código.
+
+### 18. Com o `sessionStorage` bloqueado, o chat travava em "digitando…" (15/11)
+
+- **O que aconteceu:** na correção do achado 15, o front passou a comparar a sessão da resposta com o ID salvo no `sessionStorage`. Na revisão do #50, o Eduardo mostrou que, quando o navegador bloqueia o storage (Chrome com "Bloquear todos os cookies", navegadores embutidos em apps), a leitura sempre devolve `null`. A sessão abria, mas toda resposta era descartada e a tela ficava em "digitando…" com o input desabilitado para sempre.
+- **O que fizemos:** a sessão atual da aba passou a ficar num `useRef` no `App`, atualizado ao abrir a conversa e zerado em "Nova conversa" e na sessão expirada. O `sessionStorage` ficou só para o F5. O teste do Eduardo, que bloqueia o `getItem` e o `setItem`, entrou em `errors.test.tsx`, e o teste do achado 15 continua falhando se a checagem for removida (PR #50).
+- **Para explicar:** o estado de que o fluxo depende deve ficar na memória do app. Um armazenamento do navegador pode falhar, e o app tem que funcionar sem ele, mesmo perdendo o F5.
+
+### 19. "Duplicar aba" copia o `sessionStorage` (15/11)
+
+- **O que é:** o `sessionStorage` é separado por aba, mas o "Duplicar aba" do navegador copia o storage da aba original. A aba nova abre com o mesmo `session_id` e mostra a mesma conversa.
+- **Impacto na demo:** duas das três abas virariam o mesmo usuário. Apontado pelo Eduardo na revisão do #51.
+- **O que fizemos:** o roteiro da demo manda abrir cada aba com Ctrl+T e colar a URL.
+- **Para explicar:** responde à pergunta "o que define um usuário?": é o `session_id`. Duas abas com o mesmo ID são o mesmo usuário, como dois dispositivos com a mesma senha.
 
 ---
 
