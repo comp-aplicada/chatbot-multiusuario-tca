@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import App from '../src/App.tsx'
 import { MESSAGES, STORAGE_KEY } from '../src/constants.ts'
 import {
@@ -118,6 +118,24 @@ describe('erros e sessão expirada', () => {
     await user.click(screen.getByRole('button', { name: 'Iniciar conversa' }))
 
     expect(await screen.findByText(SESSION_ID.slice(0, 8))).toBeInTheDocument()
+  })
+
+  it('sessionStorage bloqueado não trava o chat', async () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('blocked', 'SecurityError')
+    })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('blocked', 'SecurityError')
+    })
+    mockFetch(sessionCreated(), reply('Resposta do modelo'))
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'Iniciar conversa' }))
+    await user.type(await screen.findByLabelText('Mensagem'), 'Oi{Enter}')
+
+    expect(await screen.findByText('Resposta do modelo')).toBeInTheDocument()
+    expect(screen.getByLabelText('Mensagem')).toBeEnabled()
   })
 
   it('resposta atrasada da conversa antiga não derruba a conversa nova', async () => {

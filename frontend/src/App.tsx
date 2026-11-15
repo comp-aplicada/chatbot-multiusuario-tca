@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer, useRef } from 'react'
 import { ApiError, createSession, deleteSession, getSession, sendMessage } from './api/client.ts'
 import type { PersonaId } from './api/types.ts'
 import ChatWindow from './components/ChatWindow.tsx'
@@ -18,8 +18,10 @@ function isSessionGone(error: unknown): boolean {
 
 export default function App() {
   const [state, dispatch] = useReducer(chatReducer, null, () => initialState(readSessionId()))
+  const currentSessionId = useRef<string | null>(null)
 
   const expire = useCallback(() => {
+    currentSessionId.current = null
     clearSessionId()
     dispatch({ type: 'expired' })
   }, [])
@@ -32,6 +34,7 @@ export default function App() {
     }
     try {
       const detail = await getSession(sessionId)
+      currentSessionId.current = detail.session_id
       dispatch({
         type: 'loaded',
         session: { id: detail.session_id, persona: detail.persona },
@@ -56,6 +59,7 @@ export default function App() {
     dispatch({ type: 'start' })
     try {
       const created = await createSession(persona)
+      currentSessionId.current = created.session_id
       saveSessionId(created.session_id)
       dispatch({ type: 'loaded', session: { id: created.session_id, persona: created.persona }, messages: [] })
     } catch (error) {
@@ -66,11 +70,11 @@ export default function App() {
   async function deliver(sessionId: string, localId: string, content: string) {
     try {
       const response = await sendMessage(sessionId, content)
-      if (readSessionId() === sessionId) {
+      if (currentSessionId.current === sessionId) {
         dispatch({ type: 'reply', localId, reply: response.reply, replyId: crypto.randomUUID() })
       }
     } catch (error) {
-      if (readSessionId() !== sessionId) {
+      if (currentSessionId.current !== sessionId) {
         return
       }
       if (isSessionGone(error)) {
@@ -101,6 +105,7 @@ export default function App() {
 
   function newChat() {
     const sessionId = state.session?.id ?? readSessionId()
+    currentSessionId.current = null
     clearSessionId()
     dispatch({ type: 'reset' })
     if (sessionId) {
