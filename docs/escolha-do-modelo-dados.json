@@ -1,0 +1,706 @@
+{
+  "data": "2026-11-14",
+  "max_tokens": 1024,
+  "personas": {
+    "geral": "Você é um assistente virtual prestativo. Responda sempre em português do Brasil, de forma clara, correta e objetiva. Vá direto ao ponto e use no máximo 200 palavras, a não ser que o usuário peça mais detalhes. Se não souber algo, diga que não sabe. Use listas curtas quando ajudar a leitura. /no_think",
+    "juridico": "Você é um assistente de orientação jurídica geral sobre o direito brasileiro. Responda em português do Brasil, em linguagem acessível e direta, com no máximo 250 palavras, a não ser que o usuário peça mais detalhes. Não cite números de artigos nem de leis: diga só o nome da norma (por exemplo, CLT, Código de Defesa do Consumidor, Código Civil). Se não tiver certeza de uma regra, diga que é preciso confirmar. Deixe claro que a resposta é informativa e não substitui um advogado; quando o caso for concreto, recomende procurar um advogado ou a Defensoria Pública. /no_think"
+  },
+  "runs": [
+    {
+      "provider": "deepinfra",
+      "model": "Qwen/Qwen3-32B",
+      "results": [
+        {
+          "id": "q1",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Qual é a capital da Austrália?",
+          "content": "\n\nA capital da Austrália é **Canberra**.",
+          "finish_reason": "stop",
+          "latency_s": 2.97,
+          "completion_tokens": 18,
+          "cost_usd": 1.392e-05
+        },
+        {
+          "id": "q2",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Quem escreveu Dom Casmurro e em que ano o livro foi publicado?",
+          "content": "\n\n**Dom Casmurro** foi escrito por **Machado de Assis** e publicado no ano **1899**.",
+          "finish_reason": "stop",
+          "latency_s": 1.72,
+          "completion_tokens": 36,
+          "cost_usd": 1.976e-05
+        },
+        {
+          "id": "q3",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Por que o céu é azul? Responda em poucas linhas.",
+          "content": "\n\nO céu aparece azul devido ao espalhamento da luz do Sol na atmosfera terrestre. A luz solar é composta por várias cores, cada uma com um comprimento de onda diferente. Quando a luz entra na atmosfera, as moléculas de ar e partículas pequenas espalham mais eficientemente as cores de comprimento de onda menor, como o azul e o violeta. Porém, os olhos humanos são mais sensíveis ao azul, e também há mais luz azul no espectro solar do que violeta. Assim, o céu parece azul para nós.",
+          "finish_reason": "stop",
+          "latency_s": 8.57,
+          "completion_tokens": 144,
+          "cost_usd": 4.984e-05
+        },
+        {
+          "id": "q4",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Explique em poucas linhas o que é uma API REST.",
+          "content": "\n\nUma API REST (Representational State Transfer) é um estilo de arquitetura de software usado para criar serviços web. Ela permite que sistemas se comuniquem por meio de requisições HTTP, como GET, POST, PUT e DELETE. \n\nPrincipais características:\n\n- Baseada em recursos, identificados por URLs (endpoints).\n- Utiliza métodos HTTP para manipular esses recursos.\n- É sem estado (stateless), ou seja, cada requisição contém toda a informação necessária.\n- Geralmente retorna dados em formato JSON ou XML.\n\nExemplo: Um app de clima pode usar uma API REST para buscar informações meteorológicas enviando uma requisição GET para um endpoint específico.",
+          "finish_reason": "stop",
+          "latency_s": 6.49,
+          "completion_tokens": 156,
+          "cost_usd": 5.288e-05
+        },
+        {
+          "id": "q5",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Qual é a diferença entre processo e thread?",
+          "content": "\n\nA diferença entre **processo** e **thread** está na forma como elas executam programas no sistema operacional:\n\n- **Processo**:\n  - É uma instância de um programa em execução.\n  - Possui seu próprio espaço de endereçamento (memória) e recursos (como arquivos abertos).\n  - É mais pesado e lento para criar e trocar (context switch).\n  - Processos são isolados uns dos outros, o que oferece mais segurança, mas menos eficiência.\n\n- **Thread**:\n  - É uma unidade de execução dentro de um processo.\n  - Compartilha o espaço de memória e recursos do processo pai.\n  - Mais leve e rápido para criar e trocar entre threads do mesmo processo.\n  - Threads podem se comunicar mais facilmente, mas se uma trava, pode afetar o processo todo.\n\n**Resumo**:  \nProcessos são isolados e mais seguros, mas mais lentos. Threads são mais eficientes, mas compartilham recursos, exigindo cuidado com concorrência.",
+          "finish_reason": "stop",
+          "latency_s": 9.24,
+          "completion_tokens": 234,
+          "cost_usd": 7.431999999999999e-05
+        },
+        {
+          "id": "q6",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Se tenho 3 caixas com 4 maçãs cada e como 5, quantas sobram?",
+          "content": "\n\nVocê tem 3 caixas com 4 maçãs cada, então:\n\n- 3 × 4 = **12 maçãs no total**  \n- Se você come 5 maçãs: 12 − 5 = **7 maçãs sobrando**\n\n✅ **Resposta final: sobram 7 maçãs.**",
+          "finish_reason": "stop",
+          "latency_s": 2.73,
+          "completion_tokens": 80,
+          "cost_usd": 3.248e-05
+        },
+        {
+          "id": "q7",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Um ônibus sai às 14h40 e a viagem dura 2h35. A que horas ele chega?",
+          "content": "\n\nVamos somar o tempo de saída com a duração da viagem:\n\n- **Saída**: 14h40  \n- **Duração**: 2h35\n\nSomando 2 horas a 14h40 → 16h40  \nAgora, somando os 35 minutos → 16h40 + 35 minutos = **17h15**\n\n✅ **O ônibus chega às 17h15.**",
+          "finish_reason": "stop",
+          "latency_s": 2.45,
+          "completion_tokens": 115,
+          "cost_usd": 4.276e-05
+        },
+        {
+          "id": "q8",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Comprei um produto pela internet e me arrependi. Posso devolver?",
+          "content": "\n\nSe você comprou um produto pela internet no Brasil, é provável que tenha **direito de arrependimento**, especialmente se a compra foi feita fora do estabelecimento comercial, como é o caso de compras online. Isso é garantido pelo **Código de Defesa do Consumidor**, que protege os consumidores nesse tipo de situação.\n\nGeralmente, você tem um prazo de **sete dias corridos**, contados a partir do dia em que recebeu o produto, para cancelar a compra sem precisar justificar o arrependimento. Esse direito **não vale para produtos personalizados** ou que não podem ser reembalados, como alimentos perecíveis.\n\nPara devolver, entre em contato com o vendedor ou a loja virtual, devolva o produto em bom estado e com os acessórios e embalagens originais, se possível. O valor pago deve ser devolvido no prazo de **30 dias**, conforme o Código de Defesa do Consumidor.\n\nSe houver dificuldades, como recusa do estabelecimento em aceitar a devolução, procure a **Defensoria Pública** ou um **advogado**, que poderá te ajudar a exercer seus direitos.",
+          "finish_reason": "stop",
+          "latency_s": 5.18,
+          "completion_tokens": 278,
+          "cost_usd": 9.336e-05
+        },
+        {
+          "id": "q9",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Fui demitido sem justa causa. Quais verbas eu recebo?",
+          "content": "\n\nSe você foi demitido sem justa causa, tem direito a algumas verbas indenizatórias. Entre elas estão:\n\n- Indenização de 40% sobre o valor do saldo de salário na rescisão (conhecida como “aviso prévio indenizado”);\n- 50% sobre o valor do saldo de salário (adicional de 50% sobre o aviso prévio);\n- 1/12 de décimo terceiro e férias proporcionais (mais 1/3 de férias);\n- Saldo de salário (os dias trabalhados no mês da demissão);\n- 13º salário proporcional;\n- Férias proporcionais;\n- Multa de 40% sobre o FGTS (se o empregador não fizer o desligamento por justa causa);\n- Multa de 20% sobre o Fundo de Garantia, se o contrato for por tempo indeterminado e a demissão for sem justa causa.\n\nEsses direitos são garantidos pela CLT (Consolidação das Leis do Trabalho) e pelo Código Civil.\n\nSe quiser receber todas essas verbas, é importante pedir a rescisão corretamente e, em caso de dúvidas ou problemas, procure um advogado ou a Defensoria Pública.",
+          "finish_reason": "stop",
+          "latency_s": 12.13,
+          "completion_tokens": 305,
+          "cost_usd": 0.00010084
+        },
+        {
+          "id": "q10",
+          "categoria": "continuidade de contexto",
+          "persona": "geral",
+          "pergunta": "Qual é o meu nome e em que cidade eu moro?",
+          "content": "\n\nSeu nome é **Epaminondas** e você mora em **Teresina**. 😊",
+          "finish_reason": "stop",
+          "latency_s": 2.69,
+          "completion_tokens": 28,
+          "cost_usd": 2.256e-05
+        }
+      ]
+    },
+    {
+      "provider": "deepinfra",
+      "model": "Qwen/Qwen3-14B",
+      "results": [
+        {
+          "id": "q1",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Qual é a capital da Austrália?",
+          "content": "\n\nA capital da Austrália é **Canberra**. Ela foi escolhida como capital em 1913, para equilibrar o poder entre as cidades de Sydney e Melbourne. Canberra é uma cidade planejada, conhecida por seus monumentos e instituições governamentais.",
+          "finish_reason": "stop",
+          "latency_s": 2.53,
+          "completion_tokens": 71,
+          "cost_usd": 3.036e-05
+        },
+        {
+          "id": "q2",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Quem escreveu Dom Casmurro e em que ano o livro foi publicado?",
+          "content": "\n\n\"Dom Casmurro\" foi escrito por **Machado de Assis** e publicado em **1899**. É considerado um dos maiores clássicos da literatura brasileira.",
+          "finish_reason": "stop",
+          "latency_s": 1.79,
+          "completion_tokens": 52,
+          "cost_usd": 2.7000000000000002e-05
+        },
+        {
+          "id": "q3",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Por que o céu é azul? Responda em poucas linhas.",
+          "content": "\n\nO céu aparece azul devido à dispersão da luz solar na atmosfera terrestre. A luz branca do Sol é composta por várias cores, e as partículas da atmosfera dispersam mais a luz azul, que tem comprimento de onda menor, em todas as direções. Assim, quando olhamos para o céu, vemos mais luz azul do que outras cores.",
+          "finish_reason": "stop",
+          "latency_s": 2.21,
+          "completion_tokens": 96,
+          "cost_usd": 3.732e-05
+        },
+        {
+          "id": "q4",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Explique em poucas linhas o que é uma API REST.",
+          "content": "\n\nUma API REST (Representational State Transfer) é um estilo de arquitetura para criar interfaces de programação de aplicações (APIs) que permitem a comunicação entre sistemas. Ela utiliza protocolos HTTP/HTTPS e segue princípios como:\n\n- Comunicação baseada em recursos (endpoints).\n- Uso de métodos HTTP (GET, POST, PUT, DELETE).\n- Estadoless: cada requisição contém todas as informações necessárias.\n- Padronização de formatos, geralmente JSON ou XML.\n\nAs APIs REST são amplamente usadas para integrar serviços em aplicações web e mobile.",
+          "finish_reason": "stop",
+          "latency_s": 2.91,
+          "completion_tokens": 140,
+          "cost_usd": 4.74e-05
+        },
+        {
+          "id": "q5",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Qual é a diferença entre processo e thread?",
+          "content": "\n\nProcesso e thread são conceitos relacionados à execução de programas, mas possuem diferenças importantes:\n\n- **Processo**: É uma instância de um programa em execução. Cada processo tem seu próprio espaço de endereçamento, variáveis e recursos. Ele é isolado dos outros processos.\n\n- **Thread**: É uma unidade de execução dentro de um processo. Várias threads podem existir dentro de um único processo, compartilhando os mesmos recursos, como memória e abertos.\n\n**Principais diferenças**:\n- Threads são mais leves e têm menos sobrecarga de criação do que processos.\n- Processos são mais independentes e seguros, já que não compartilham recursos diretamente.\n- Threads compartilham o espaço de endereçamento do processo, o que pode levar a conflitos se não for bem gerenciado.\n\nEm resumo: um processo é um programa em execução, e uma thread é uma parte desse processo que executa tarefas.",
+          "finish_reason": "stop",
+          "latency_s": 4.53,
+          "completion_tokens": 224,
+          "cost_usd": 6.696000000000001e-05
+        },
+        {
+          "id": "q6",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Se tenho 3 caixas com 4 maçãs cada e como 5, quantas sobram?",
+          "content": "\n\nVocê tem 3 caixas × 4 maçãs = 12 maçãs.  \nSe comer 5, sobram: 12 – 5 = **7 maçãs**.",
+          "finish_reason": "stop",
+          "latency_s": 1.43,
+          "completion_tokens": 49,
+          "cost_usd": 2.6880000000000004e-05
+        },
+        {
+          "id": "q7",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Um ônibus sai às 14h40 e a viagem dura 2h35. A que horas ele chega?",
+          "content": "\n\nPara calcular o horário de chegada, some o horário de saída com o tempo de viagem:\n\n- Saída: 14h40  \n- Viagem: 2h35  \n\nSomando:  \n14h40 + 2h35 = **17h15**\n\nO ônibus chega às **17h15**.",
+          "finish_reason": "stop",
+          "latency_s": 5.5,
+          "completion_tokens": 87,
+          "cost_usd": 3.672e-05
+        },
+        {
+          "id": "q8",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Comprei um produto pela internet e me arrependi. Posso devolver?",
+          "content": "\n\nSim, em muitos casos você pode devolver um produto comprado pela internet. No Brasil, o **Código de Defesa do Consumidor** garante ao consumidor o direito de arrependimento, também chamado de \"direito de desistência\", em compras feitas à distância, como pela internet.\n\nEsse direito geralmente é válido por 7 dias corridos, contados a partir da data da entrega do produto. Nesse período, você pode solicitar a devolução sem precisar justificar o motivo.\n\nPara exercer esse direito, é importante manter o produto em condições originais, com embalagem e acessórios intactos. Além disso, é recomendável guardar o comprovante de compra e entrar em contato com o vendedor para informar sua intenção de devolver o item.\n\nCaso o vendedor não aceite a devolução ou haja algum problema com o produto, é aconselhável buscar orientação jurídica por meio de um advogado ou da Defensoria Pública.",
+          "finish_reason": "stop",
+          "latency_s": 6.46,
+          "completion_tokens": 231,
+          "cost_usd": 7.872e-05
+        },
+        {
+          "id": "q9",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Fui demitido sem justa causa. Quais verbas eu recebo?",
+          "content": "\n\nSe você foi demitido sem justa causa, tem direito a algumas verbas rescisórias, conforme prevê a **Consolidação das Leis do Trabalho (CLT)**. Entre elas estão: aviso prévio (que pode ser trabalhado ou indenizado), saldo de salário, férias proporcionais com um terço constitucional, décimo terceiro proporcional, multa do FGTS (se o empregador não comprovou a justa causa), e, se houver, indenização por danos morais (em casos específicos, como assédio ou discriminação).\n\nÉ importante ressaltar que a análise do seu caso depende de detalhes como o tempo de serviço, o motivo da demissão e se houve algum descumprimento de cláusulas contratuais. Recomendo que procure um advogado especializado em direito do trabalho ou a Defensoria Pública para uma análise mais precisa e orientação sobre como solicitar a rescisão e os direitos devidos.",
+          "finish_reason": "stop",
+          "latency_s": 16.61,
+          "completion_tokens": 238,
+          "cost_usd": 8.028000000000001e-05
+        },
+        {
+          "id": "q10",
+          "categoria": "continuidade de contexto",
+          "persona": "geral",
+          "pergunta": "Qual é o meu nome e em que cidade eu moro?",
+          "content": "\n\nSeu nome é Epaminondas e você mora em Teresina.",
+          "finish_reason": "stop",
+          "latency_s": 3.97,
+          "completion_tokens": 22,
+          "cost_usd": 2.7480000000000005e-05
+        }
+      ]
+    },
+    {
+      "provider": "deepinfra",
+      "model": "Qwen/Qwen3-30B-A3B",
+      "results": [
+        {
+          "id": "q1",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Qual é a capital da Austrália?",
+          "content": "\n\nA capital da Austrália é **Canberra**.  \n\nFoi escolhida como capital em 1908, por ser uma área neutra entre as cidades de Sydney e Melbourne. Canberra foi planejada especialmente para ser a sede do governo federal australiano.",
+          "finish_reason": "stop",
+          "latency_s": 1.77,
+          "completion_tokens": 65,
+          "cost_usd": 4.582e-05
+        },
+        {
+          "id": "q2",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Quem escreveu Dom Casmurro e em que ano o livro foi publicado?",
+          "content": "\n\n\"Dom Casmurro\" foi escrito por **Machado de Assis**.  \nO livro foi publicado em **1899**.  \nÉ considerado uma das obras-primas da literatura brasileira e faz parte da trilogia \"O Espírito Público\", junto com \"Memórias Póstumas de Brás Cubas\" e \"Quincas Borba\".",
+          "finish_reason": "stop",
+          "latency_s": 1.78,
+          "completion_tokens": 91,
+          "cost_usd": 6.0020000000000005e-05
+        },
+        {
+          "id": "q3",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Por que o céu é azul? Responda em poucas linhas.",
+          "content": "\n\nO céu é azul devido à forma como a luz do Sol interage com a atmosfera terrestre. A luz solar contém várias cores, mas o azul é espalhado mais intensamente pelo ar e partículas pequenas. Isso faz com que o céu pareça azul para nós.",
+          "finish_reason": "stop",
+          "latency_s": 1.56,
+          "completion_tokens": 75,
+          "cost_usd": 5.178e-05
+        },
+        {
+          "id": "q4",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Explique em poucas linhas o que é uma API REST.",
+          "content": "\n\nAPI REST é um estilo de arquitetura para desenvolver serviços web. Ela utiliza métodos HTTP (como GET, POST, PUT, DELETE) para realizar operações em recursos. Funciona de forma stateless, ou seja, cada requisição contém todas as informações necessárias. É amplamente usada para comunicação entre sistemas, oferecendo flexibilidade e escalabilidade.",
+          "finish_reason": "stop",
+          "latency_s": 1.85,
+          "completion_tokens": 87,
+          "cost_usd": 5.730000000000001e-05
+        },
+        {
+          "id": "q5",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Qual é a diferença entre processo e thread?",
+          "content": "\n\nProcesso e thread são conceitos relacionados à execução de programas em um sistema operacional, mas têm diferenças principais:\n\n- **Processo**: É uma unidade de execução que inclui o código do programa, dados e recursos (como memória e arquivos). Cada processo tem seu próprio espaço de endereçamento.\n\n- **Thread**: É uma unidade de execução dentro de um processo. Threads compartilham o espaço de memória e recursos do processo, o que as torna mais leves e eficientes para comunicação e comunidade.\n\n**Principais diferenças:**\n- Processos são independentes; threads compartilham recursos.\n- Mudanças em um processo não afetam outros; threads podem interferir entre si.\n- Criação de processos é mais custosa que de threads.",
+          "finish_reason": "stop",
+          "latency_s": 3.23,
+          "completion_tokens": 181,
+          "cost_usd": 0.00010370000000000001
+        },
+        {
+          "id": "q6",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Se tenho 3 caixas com 4 maçãs cada e como 5, quantas sobram?",
+          "content": "\n\nVocê tem 3 caixas com 4 maçãs cada:  \n3 × 4 = 12 maçãs no total.  \n\nSe você come 5, então:  \n12 − 5 = 7 maçãs sobram.",
+          "finish_reason": "stop",
+          "latency_s": 1.43,
+          "completion_tokens": 59,
+          "cost_usd": 4.4619999999999996e-05
+        },
+        {
+          "id": "q7",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Um ônibus sai às 14h40 e a viagem dura 2h35. A que horas ele chega?",
+          "content": "\n\nO ônibus sai às 14h40 e a viagem dura 2h35.  \nPara calcular o horário de chegada:\n\n- 14h40 + 2h = 16h40  \n- 16h40 + 35min = 17h15  \n\n**Resposta:** O ônibus chega às **17h15**.",
+          "finish_reason": "stop",
+          "latency_s": 1.86,
+          "completion_tokens": 97,
+          "cost_usd": 6.434000000000001e-05
+        },
+        {
+          "id": "q8",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Comprei um produto pela internet e me arrependi. Posso devolver?",
+          "content": "\n\nSim, você pode devolver o produto, desde que o prazo de arrependimento ainda esteja válido. No Brasil, o Código de Defesa do Consumidor garante o direito de devolução ou troca em até 7 dias, contados da data da compra ou do recebimento do produto.\n\nPara devolver, é importante verificar se o produto está em perfeito estado, com todas as etiquetas e embalagens originais. O vendedor deve aceitar a devolução e devolver o valor pago, normalmente em até 10 dias úteis.\n\nCaso o vendedor se recuse, você pode procurar a Defensoria Pública ou registrar uma reclamação no Procon. Lembre-se de que, em alguns casos, como produtos personalizados ou com prazo de validade curto, essa regra pode não se aplicar.\n\nSe for um caso específico, é sempre bom consultar um advogado para garantir seus direitos.",
+          "finish_reason": "stop",
+          "latency_s": 3.86,
+          "completion_tokens": 212,
+          "cost_usd": 0.00012928
+        },
+        {
+          "id": "q9",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Fui demitido sem justa causa. Quais verbas eu recebo?",
+          "content": "\n\nAo ser demitido sem justa causa, você tem direito a algumas verbas trabalhistas. Entre elas estão:\n\n- **Salário do mês trabalhado**: o salário proporcional ao tempo que você trabalhou no mês da demissão.\n- **13º salário proporcional**: uma parcela do 13º salário, calculada de acordo com o tempo de serviço no ano.\n- **Férias proporcionais**: caso você não tenha gozado todas as férias do ano, você recebe o valor proporcional.\n- **Aviso prévio**: pode ser trabalhado ou indenizado (valor do salário).\n- **FGTS**: o valor correspondente a 8% do salário, depositado na conta do FGTS.\n- **Décimo terceiro salário e férias**: se houver, também são devidos.\n\nAlém disso, pode haver indenização por danos morais, dependendo do caso. Recomenda-se consultar um advogado ou a Defensoria Pública para orientação específica.",
+          "finish_reason": "stop",
+          "latency_s": 4.01,
+          "completion_tokens": 243,
+          "cost_usd": 0.00014466000000000001
+        },
+        {
+          "id": "q10",
+          "categoria": "continuidade de contexto",
+          "persona": "geral",
+          "pergunta": "Qual é o meu nome e em que cidade eu moro?",
+          "content": "\n\nSeu nome é Epaminondas e você mora em Teresina. 😊",
+          "finish_reason": "stop",
+          "latency_s": 0.99,
+          "completion_tokens": 24,
+          "cost_usd": 3.4920000000000004e-05
+        }
+      ]
+    },
+    {
+      "provider": "deepinfra",
+      "model": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+      "results": [
+        {
+          "id": "q1",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Qual é a capital da Austrália?",
+          "content": "A capital da Austrália é **Camberra**.\n\nEla foi escolhida como capital em 1913, sendo uma cidade planejada para servir como solução neutra entre as duas maiores cidades do país: Sydney e Melbourne.",
+          "finish_reason": "stop",
+          "latency_s": 3.34,
+          "completion_tokens": 56,
+          "cost_usd": 4.079e-05
+        },
+        {
+          "id": "q2",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Quem escreveu Dom Casmurro e em que ano o livro foi publicado?",
+          "content": "*Dom Casmurro* foi escrito por **Machado de Assis** e publicado originalmente em **1899**. É um dos romances mais famosos da literatura brasileira e considerado um clássico da ficção psicológica.",
+          "finish_reason": "stop",
+          "latency_s": 3.33,
+          "completion_tokens": 62,
+          "cost_usd": 4.499e-05
+        },
+        {
+          "id": "q3",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Por que o céu é azul? Responda em poucas linhas.",
+          "content": "O céu é azul porque a luz do Sol, ao entrar na atmosfera da Terra, se dispersa em todas as direções. A luz azul tem um comprimento de onda curto e é espalhada mais do que as outras cores por moléculas do ar. Por isso, vemos o céu com uma cor azul durante o dia.",
+          "finish_reason": "stop",
+          "latency_s": 4.7,
+          "completion_tokens": 81,
+          "cost_usd": 5.5259999999999996e-05
+        },
+        {
+          "id": "q4",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Explique em poucas linhas o que é uma API REST.",
+          "content": "Uma API REST é um tipo de interface que permite a comunicação entre sistemas usando os princípios da arquitetura REST (Representational State Transfer). Ela utiliza os métodos HTTP (como GET, POST, PUT e DELETE) para realizar operações em recursos identificados por URLs. Os dados são geralmente trocados em formato JSON ou XML, sendo simples, leve e amplamente usada em aplica游戏副本s web e móveis.",
+          "finish_reason": "stop",
+          "latency_s": 4.76,
+          "completion_tokens": 95,
+          "cost_usd": 6.26e-05
+        },
+        {
+          "id": "q5",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Qual é a diferença entre processo e thread?",
+          "content": "A principal diferença entre **processo** e **thread** está no modo como compartilham recursos e se executam em um sistema operacional:\n\n- **Processo**:\n  - É uma instância de um programa em execução.\n  - Tem seu próprio espaço de memória (isolado dos outros processos).\n  - Comunicação entre processos é mais complexa (requer mecanismos como pipes, filas, etc.).\n  - Criação e troca de contexto são mais lentas.\n\n- **Thread** (ou \"linha de execução\"):\n  - É uma subunidade de um processo.\n  - Várias threads podem existir dentro de um mesmo processo, compartilhando o mesmo espaço de memória.\n  - Compartilham dados e recursos do processo facilmente.\n  - Troca de contexto entre threads é mais rápida.\n  - Permitem execução paralela dentro de um processo (útil para tarefas simultâneas).\n\n**Resumo**:\n- Processo: mais isolado, mais pesado.\n- Thread: mais leve, compartilha memória com outras threads do mesmo processo.\n\nThreads são ideais para tarefas que precisam cooperar e compartilhar dados rapidamente, enquanto processos oferecem maior segurança e isolamento.",
+          "finish_reason": "stop",
+          "latency_s": 10.87,
+          "completion_tokens": 275,
+          "cost_usd": 0.00016115000000000001
+        },
+        {
+          "id": "q6",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Se tenho 3 caixas com 4 maçãs cada e como 5, quantas sobram?",
+          "content": "Você tem 3 caixas com 4 maçãs cada:  \n3 × 4 = 12 maçãs no total.\n\nVocê come 5 maçãs.\n\nEntão sobram:  \n12 − 5 = 7 maçãs.\n\n**Sobram 7 maçãs.**",
+          "finish_reason": "stop",
+          "latency_s": 3.81,
+          "completion_tokens": 68,
+          "cost_usd": 4.874e-05
+        },
+        {
+          "id": "q7",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Um ônibus sai às 14h40 e a viagem dura 2h35. A que horas ele chega?",
+          "content": "O ônibus sai às 14h40 e a viagem dura 2 horas e 35 minutos.\n\nVamos somar:\n\n- 14h40 + 2h = 16h40\n- 16h40 + 35 min = 17h15\n\nPortanto, o ônibus chega às **17h15**.",
+          "finish_reason": "stop",
+          "latency_s": 4.2,
+          "completion_tokens": 90,
+          "cost_usd": 6.138e-05
+        },
+        {
+          "id": "q8",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Comprei um produto pela internet e me arrependi. Posso devolver?",
+          "content": "Sim, você pode devolver o produto comprado pela internet e se arrepender da compra. Isso é garantido pela Lei do Consumidor, que vale para compras feitas fora de um estabelecimento físico, como lojas virtuais.\n\nVocê tem até 7 dias, contados **a partir do recebimento do produto**, para desistir da compra, sem precisar dar justificativa. Esse prazo é chamado de \"período de arrependimento\".\n\nPara isso, você deve:\n- Devolver o produto na mesma condição em que recebeu, sem uso e com todos os itens originais (embalagem, manuais, acessórios, etc.);\n- Entrar em contato com a empresa (normalmente pelo site ou atendimento ao cliente) para informar a desistência e seguir as orientações sobre como devolver;\n- A empresa é obrigada a devolver todo o dinheiro que você pagou, inclusive os valores dos frete e taxas.\n\nA restituição do valor deve ser feita no mesmo modo de pagamento original, em até 14 dias, ou de outra forma combinada com você.\n\nImportante: esse direito só vale para compras feitas **fora do estabelecimento comercial**, como pela internet, telefone, catálogo ou em domicílio. Compras em lojas físicas não têm esse direito automático, a menos que a loja ofereça essa opção por política própria.\n\nSe a empresa recusar a devolução dentro do prazo, você pode entrar com uma reclamação no Procon ou na Justiça de Pequenas Causas.\n\nLembre-se: esta é uma orientação geral. Para casos específicos, o ideal é consultar um advogado ou a Defensoria Pública.",
+          "finish_reason": "stop",
+          "latency_s": 12.54,
+          "completion_tokens": 382,
+          "cost_usd": 0.00022756000000000002
+        },
+        {
+          "id": "q9",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Fui demitido sem justa causa. Quais verbas eu recebo?",
+          "content": "Se você foi demitido sem justa causa, tem direito a receber várias verbas rescisórias. São elas:\n\n1. **Salário proporcional**: valor referente aos dias trabalhados no mês da demissão.  \n2. **Férias vencidas + 1/3**: férias que você já tinha direito, mais o adicional de um terço do salário.  \n3. **Férias proporcionais + 1/3**: se você não completou 12 meses, recebe proporcionalmente pelo tempo trabalhado.  \n4. **13º salário proporcional**: um pagamento proporcional aos meses trabalhados no ano.  \n5. **Aviso prévio**: se não trabalhou os 30 dias de aviso, tem direito ao pagamento desse período. Há regras especiais se o tempo de empresa for maior (como o aviso ampliado pela CLT).  \n6. **Multas do FGTS**: o empregador deve depositar 40% do valor total do FGTS acumulado na conta vinculada, como multa por demissão sem justa causa.  \n7. **Seguro-desemprego**: você pode ter direito, se atender aos requisitos da lei.  \n\nO pagamento deve ser feito até o 10º dia útil após a demissão, ou o empregador pode ter que pagar uma multa.  \n\nSe houver acordo para saque do FGTS, o valor da multa cai para 20%.  \n\nÉ importante conferir se todos os valores estão corretos no cálculo da rescisão. Caso note qualquer erro ou falta de pagamento, você pode procurar um advogado trabalhista ou a Defensoria Pública para resolver.  \n\nEsta resposta é apenas informativa. Para casos concretos, sempre consulte um profissional do direito.",
+          "finish_reason": "stop",
+          "latency_s": 20.69,
+          "completion_tokens": 415,
+          "cost_usd": 0.00024562
+        },
+        {
+          "id": "q10",
+          "categoria": "continuidade de contexto",
+          "persona": "geral",
+          "pergunta": "Qual é o meu nome e em que cidade eu moro?",
+          "content": "Seu nome é Epaminondas e você mora em Teresina.",
+          "finish_reason": "stop",
+          "latency_s": 1.13,
+          "completion_tokens": 18,
+          "cost_usd": 2.601e-05
+        }
+      ]
+    },
+    {
+      "provider": "deepinfra",
+      "model": "Qwen/Qwen3.8-27B",
+      "results": [
+        {
+          "id": "q1",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Qual é a capital da Austrália?",
+          "content": "A capital da Austrália é **Canberra**.",
+          "finish_reason": "stop",
+          "latency_s": 0.95,
+          "completion_tokens": 11,
+          "cost_usd": 3.5775e-05
+        },
+        {
+          "id": "q2",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Quem escreveu Dom Casmurro e em que ano o livro foi publicado?",
+          "content": "**Autor:** Machado de Assis.\n\n**Ano de publicação:** 1899.",
+          "finish_reason": "stop",
+          "latency_s": 1.29,
+          "completion_tokens": 22,
+          "cost_usd": 5.775000000000001e-05
+        },
+        {
+          "id": "q3",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Por que o céu é azul? Responda em poucas linhas.",
+          "content": "O céu é azul devido à **espalhamento de Rayleigh**.\n\nQuando a luz solar atinge a atmosfera terrestre, as moléculas de ar espalham mais fortemente os comprimentos de onda curtos (azuis e violetas) do que os longos (vermelhos e amarelos).\n\nEmbora o violeta seja espalhado ainda mais, nossos olhos são menos sensíveis a essa cor e o sol emite menos luz violeta. Portanto, percebemos o céu predominantemente como azul.",
+          "finish_reason": "stop",
+          "latency_s": 2.12,
+          "completion_tokens": 110,
+          "cost_usd": 0.0002223
+        },
+        {
+          "id": "q4",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Explique em poucas linhas o que é uma API REST.",
+          "content": "Uma API REST (Representational State Transfer) é um conjunto de regras e padrões para a comunicação entre sistemas web. Ela utiliza o protocolo HTTP e trata os recursos (como usuários ou produtos) como objetos acessíveis por URLs.\n\nAs principais características são:\n*   **Métodos HTTP**: Usa verbos como GET (ler), POST (criar), PUT (atualizar) e DELETE (remover).\n*   **Estadoless**: Cada requisição contém todas as informações necessárias para ser processada, sem depender de sessões anteriores.\n*   **Formato de dados**: Geralmente utiliza JSON ou XML para troca de informações.\n\nEm resumo, é a forma padrão de construir interfaces web escaláveis e fáceis de integrar.",
+          "finish_reason": "stop",
+          "latency_s": 2.72,
+          "completion_tokens": 155,
+          "cost_usd": 0.000306375
+        },
+        {
+          "id": "q5",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Qual é a diferença entre processo e thread?",
+          "content": "A principal diferença reside na **independência de recursos** e no **custo de criação**.\n\n*   **Processo:** É uma unidade de execução independente com seu próprio espaço de memória (endereço de memória virtual). Dois processos não compartilham memória diretamente, o que aumenta a segurança, mas torna a comunicação entre eles mais lenta e complexa. Criar um processo é mais \"caro\" computacionalmente.\n*   **Thread (Filo):** É uma unidade de execução *dentro* de um processo. Todas as threads de um processo compartilham a mesma memória e recursos (como arquivos abertos). Isso permite comunicação rápida e fácil, mas exige cuidado com a concorrência (ex.: condições de corrida). Criar uma thread é mais rápido e leve.\n\n**Resumo prático:**\n*   Use **processos** para isolar tarefas críticas ou aumentar a segurança/estabilidade.\n*   Use **threads** para paralelizar tarefas que precisam compartilhar dados rapidamente.",
+          "finish_reason": "stop",
+          "latency_s": 3.16,
+          "completion_tokens": 205,
+          "cost_usd": 0.00039967500000000005
+        },
+        {
+          "id": "q6",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Se tenho 3 caixas com 4 maçãs cada e como 5, quantas sobram?",
+          "content": "Você tem 12 maçãs no total (3 caixas × 4 maçãs). Como 5, sobram **7** maçãs.",
+          "finish_reason": "stop",
+          "latency_s": 0.94,
+          "completion_tokens": 33,
+          "cost_usd": 7.9275e-05
+        },
+        {
+          "id": "q7",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Um ônibus sai às 14h40 e a viagem dura 2h35. A que horas ele chega?",
+          "content": "O ônibus chega às **17h15**.\n\n**Cálculo:**\n1.  **Horas:** 14h + 2h = 16h\n2.  **Minutos:** 40min + 35min = 75min\n3.  **Ajuste:** Como 75 minutos equivalem a 1 hora e 15 minutos, somamos essa 1 hora às 16h.\n4.  **Resultado:** 16h + 1h = 17h, restando 15 minutos.",
+          "finish_reason": "stop",
+          "latency_s": 2.79,
+          "completion_tokens": 128,
+          "cost_usd": 0.00025785
+        },
+        {
+          "id": "q8",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Comprei um produto pela internet e me arrependi. Posso devolver?",
+          "content": "Sim, você tem o direito de se arrepender da compra. A legislação brasileira que protege o consumidor (Código de Defesa do Consumidor) garante que, em compras feitas fora do estabelecimento comercial, como pela internet ou telefone, você pode desistir do produto dentro de um prazo de sete dias contados a partir do recebimento.\n\nPara exercer esse direito, basta notificar a empresa. A devolução deve ser feita de forma simples e gratuita. O lojista é obrigado a reembolsar o valor total pago, incluindo os custos do frete, de forma imediata e em dinheiro, ou através de crédito, conforme sua preferência.\n\nÉ importante destacar que esse direito de arrependimento é independente de o produto estar com defeito ou não; ele existe justamente para proteger o consumidor que, por exemplo, mudou de ideia após o recebimento. No entanto, se o produto apresentar vício ou defeito, você tem outros direitos específicos, como o reparo ou a troca, que podem ocorrer em prazos diferentes.\n\nRecomendo que você guarve o comprovante de compra e registre a notificação por escrito (e-mail ou mensagem) para ter prova de que respeitou o prazo. Esta resposta é informativa e não substitui a orientação de um profissional. Para casos mais complexos ou em caso de negativa injusta da empresa, consulte um advogado ou procure a Defensoria Pública da sua região.",
+          "finish_reason": "stop",
+          "latency_s": 4.56,
+          "completion_tokens": 289,
+          "cost_usd": 0.000566475
+        },
+        {
+          "id": "q9",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Fui demitido sem justa causa. Quais verbas eu recebo?",
+          "content": "Ao ser demitido sem justa causa, você tem direito a um conjunto de verbas obrigatórias para garantir sua proteção financeira e o direito ao seguro-desemprego.\n\nAs principais verbas incluem:\n\n1. **Saldo de salário**: pagamento dos dias trabalhados no mês da saída.\n2. **Aviso prévio**: pode ser indenizado (30 dias, acrescidos de 3 dias por ano trabalhado, limitado a 90 dias) ou trabalhado. Se for indenizado, o tempo conta para o aviso.\n3. **13º salário proporcional**: referente aos meses trabalhados no ano.\n4. **Férias vencidas**: se houver, mais o terço constitucional.\n5. **Férias proporcionais**: referente aos meses trabalhados no ano, mais o terço constitucional.\n6. **FGTS**: liberação de 40% sobre o saldo total da conta vinculada.\n7. **Seguro-desemprego**: direito a receber parcelas mensais, desde que cumpra os requisitos legais.\n\nÉ importante verificar se a empresa fez os depósitos do FGTS e do INSS corretamente. Guarde a Carteira de Trabalho (física ou digital), o termo de rescisão e os holerites.\n\nEssa resposta é informativa e não substitui a orientação de um advogado. Para casos concretos, especialmente se houver valores em disputa ou dúvidas sobre o cálculo, recomenda-se procurar um advogado trabalhista ou a Defensoria Pública da sua cidade para analisar sua situação específica e garantir que todos os seus direitos sejam respeitados.",
+          "finish_reason": "stop",
+          "latency_s": 6.28,
+          "completion_tokens": 334,
+          "cost_usd": 0.0006507
+        },
+        {
+          "id": "q10",
+          "categoria": "continuidade de contexto",
+          "persona": "geral",
+          "pergunta": "Qual é o meu nome e em que cidade eu moro?",
+          "content": "Seu nome é Epaminondas e você mora em Teresina.",
+          "finish_reason": "stop",
+          "latency_s": 0.92,
+          "completion_tokens": 16,
+          "cost_usd": 5.49e-05
+        }
+      ]
+    },
+    {
+      "provider": "groq",
+      "model": "qwen/qwen3.8-27b",
+      "results": [
+        {
+          "id": "q1",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Qual é a capital da Austrália?",
+          "content": "A capital da Austrália é **Canberra**.\n\nEmbora Sydney e Melbourne sejam as cidades mais conhecidas do país, Canberra foi escolhida em 1913 como capital neutra para resolver as disputas entre essas duas metrópoles.",
+          "finish_reason": "stop",
+          "latency_s": 0.55,
+          "completion_tokens": 53,
+          "cost_usd": null
+        },
+        {
+          "id": "q2",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Quem escreveu Dom Casmurro e em que ano o livro foi publicado?",
+          "content": "**Machado de Assis** escreveu *Dom Casmurro*.\n\nO livro foi publicado em **1899**, sob o título original *Memórias Póstumas de Brás Cubas*? Não, cuidado: *Memórias Póstumas* é de 1881. *Dom Casmurro* foi publicado em **1899**.\n\nResumo direto:\n- **Autor:** Machado de Assis\n- **Ano de publicação:** 1899",
+          "finish_reason": "stop",
+          "latency_s": 0.72,
+          "completion_tokens": 108,
+          "cost_usd": null
+        },
+        {
+          "id": "q3",
+          "categoria": "conhecimento geral",
+          "persona": "geral",
+          "pergunta": "Por que o céu é azul? Responda em poucas linhas.",
+          "content": "A cor azul do céu é causada pela **dispersão de Rayleigh**.\n\n*   A luz solar branca contém todas as cores.\n*   Ao entrar na atmosfera, as moléculas de ar espalham mais fortemente os comprimentos de onda curtos (azul e violeta) do que os longos (vermelho).\n*   Nosso olho é mais sensível ao azul e menos ao violeta, que é parcialmente absorvido pela atmosfera superior.\n*   Por isso, o céu inteiro parece azul, pois a luz azul é espalhada em todas as direções.",
+          "finish_reason": "stop",
+          "latency_s": 0.52,
+          "completion_tokens": 126,
+          "cost_usd": null
+        },
+        {
+          "id": "q4",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Explique em poucas linhas o que é uma API REST.",
+          "content": "Uma API REST (Representational State Transfer) é um conjunto de regras e padrões para construção de interfaces de software que facilitam a comunicação entre sistemas via internet.\n\nPrincipais características:\n*   **Baseada em HTTP:** Utiliza métodos padrão como GET, POST, PUT e DELETE para operações de leitura, criação, atualização e exclusão.\n*   **Estadoless:** Cada requisição deve conter todas as informações necessárias para ser processada, sem dependência de sessões anteriores.\n*   **Orientada a recursos:** Os dados são tratados como recursos identificados por URIs (ex.: `/usuarios/1`).\n*   **Formato de dados:** Geralmente troca informações em JSON ou XML.\n\nÉ a arquitetura mais utilizada para desenvolvimento de aplicações web modernas devido à sua simplicidade, leveza e escalabilidade.",
+          "finish_reason": "stop",
+          "latency_s": 1.08,
+          "completion_tokens": 172,
+          "cost_usd": null
+        },
+        {
+          "id": "q5",
+          "categoria": "explicação técnica",
+          "persona": "geral",
+          "pergunta": "Qual é a diferença entre processo e thread?",
+          "content": "A principal diferença reside na **independência** e no **uso de recursos de memória**.\n\n**Processo**\n*   É uma aplicação em execução com seu próprio espaço de memória isolado.\n*   Tem seus próprios identificadores e recursos.\n*   Se um processo falha, os outros não são afetados.\n*   Criar processos é mais lento e consome mais memória.\n\n**Thread (Fio de Execução)**\n*   É uma sub-rotina que executa dentro de um processo.\n*   Compartilha a memória e os recursos do processo pai com outras threads.\n*   A comunicação entre threads é mais rápida, pois não há necessidade de passar dados entre espaços de memória diferentes.\n*   Se uma thread falhar, pode comprometer todo o processo.\n*   A criação de threads é mais rápida e leve.\n\n**Resumo prático:**\n*   Use **processos** para isolar aplicações diferentes ou garantir segurança.\n*   Use **threads** para paralelizar tarefas dentro de uma mesma aplicação, como baixar arquivos ao mesmo tempo em um navegador.",
+          "finish_reason": "stop",
+          "latency_s": 0.84,
+          "completion_tokens": 233,
+          "cost_usd": null
+        },
+        {
+          "id": "q6",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Se tenho 3 caixas com 4 maçãs cada e como 5, quantas sobram?",
+          "content": "Você terá 7 maçãs restantes.\n\nO cálculo é simples:\n*   Total inicial: 3 caixas × 4 maçãs = 12 maçãs.\n*   Subtração: 12 total - 5 comidas = 7 sobras.",
+          "finish_reason": "stop",
+          "latency_s": 0.48,
+          "completion_tokens": 59,
+          "cost_usd": null
+        },
+        {
+          "id": "q7",
+          "categoria": "raciocínio simples",
+          "persona": "geral",
+          "pergunta": "Um ônibus sai às 14h40 e a viagem dura 2h35. A que horas ele chega?",
+          "content": "Para calcular o horário de chegada, somamos as horas e os minutos de partida com a duração da viagem:\n\n1.  **Minutos:** 40 min + 35 min = 75 minutos.\n    *   Como 75 minutos equivalem a 1 hora e 15 minutos, registramos **15 minutos** e somamos **1 hora** às horas.\n2.  **Horas:** 14h + 2h (da viagem) + 1h (do estouro de minutos) = **17h**.\n\nPortanto, o ônibus chega às **17h15**.",
+          "finish_reason": "stop",
+          "latency_s": 0.91,
+          "completion_tokens": 137,
+          "cost_usd": null
+        },
+        {
+          "id": "q8",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Comprei um produto pela internet e me arrependi. Posso devolver?",
+          "content": "Sim, você pode devolver. A legislação brasileira, especificamente o Código de Defesa do Consumidor, garante o direito de arrependimento para compras realizadas fora do estabelecimento comercial, como pela internet, telefone ou catálogo.\n\nAo exercer esse direito, o prazo legal é de 7 dias corridos, contados a partir da data do recebimento do produto (ou da contratação, no caso de serviços). Para que o pedido de devolução seja aceito, é essencial que você comunique formalmente o arrependimento ao fornecedor dentro desse prazo, geralmente por e-mail, mensagem ou pelo site da loja.\n\nÉ importante destacar que o fornecedor é obrigado a reembolsar todas as quantias pagas pelo consumidor, incluindo o valor do produto e o frete, atualizados pela taxa de inflação oficial. Além disso, caso você tenha utilizado alguma forma de pagamento em que haja encargos (como juros de cartão), esses valores também devem ser devolvidos se a transação for cancelada.\n\nPorém, essa garantia de reembolso integral pode não se aplicar se o produto for in natura (perecível) ou personalizado conforme especificações do consumidor, mas a regra geral de 7 dias se aplica à maioria dos itens de consumo padrão.\n\nEsta orientação é meramente informativa e não substitui a assessoria de um advogado. Se a loja negar o direito ou não realizar o estorno dentro do prazo, recomendamos procurar a Defensoria Pública, o Procon local ou um advogado para buscar a solução adequada para o seu caso concreto.",
+          "finish_reason": "stop",
+          "latency_s": 1.07,
+          "completion_tokens": 317,
+          "cost_usd": null
+        },
+        {
+          "id": "q9",
+          "categoria": "jurídica",
+          "persona": "juridico",
+          "pergunta": "Fui demitido sem justa causa. Quais verbas eu recebo?",
+          "content": "Ao ser demitido sem justa causa, você tem direito a um conjunto de verbas rescisórias previstas na Consolidação das Leis do Trabalho (CLT). O pagamento deve ocorrer em até 10 dias corridos após o desligamento.\n\nAs principais verbas são:\n\n1. **Saldo de salário**: correspondo aos dias trabalhados no mês da saída.\n2. **Férias vencidas**: se houver período aquisitivo completo não gozado, soma-se o valor proporcional ao terço constitucional.\n3. **Férias proporcionais**: referente aos meses trabalhados no ano corrente.\n4. **13º salário proporcional**: calculado com base nos meses trabalhados no ano.\n5. **Aviso prévio**: pode ser indenizado (mesmo valor de um mês de salário) ou trabalhado (você trabalha 30 dias a mais, recebendo os salários e férias proporcionais a mais).\n6. **Multas do FGTS**: 40% sobre o total dos depósitos de FGTS feitos pelo empregador durante todo o contrato.\n7. **Liberação do FGTS**: você pode sacar o saldo da conta vinculada ao contrato.\n8. **Carta de anuência**: para solicitar o seguro-desemprego, desde que cumpra os requisitos (como tempo mínimo de trabalho e não ter recebido rendimentos).\n\nÉ importante verificar se há outras verbas como horas extras não pagas, adicionais de insalubridade ou periculosidade, dependendo da sua função.\n\nEsta resposta é apenas informativa e não substitui a orientação de um profissional. Para calcular os valores exatos e garantir seus direitos, recomendo procurar um advogado trabalhista ou a Defensoria Pública da sua região.",
+          "finish_reason": "stop",
+          "latency_s": 1.06,
+          "completion_tokens": 371,
+          "cost_usd": null
+        },
+        {
+          "id": "q10",
+          "categoria": "continuidade de contexto",
+          "persona": "geral",
+          "pergunta": "Qual é o meu nome e em que cidade eu moro?",
+          "content": "Seu nome é Epaminondas e você mora em Teresina.",
+          "finish_reason": "stop",
+          "latency_s": 0.39,
+          "completion_tokens": 16,
+          "cost_usd": null
+        }
+      ]
+    }
+  ]
+}
