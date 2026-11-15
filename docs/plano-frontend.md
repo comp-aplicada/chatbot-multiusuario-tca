@@ -238,11 +238,11 @@ Branches no padrão `feat/frontend-<descricao>`, um PR por fase, revisado pelo E
 
 ### Fase 2. Cliente da API e estado · qua 11/11 · `feat/frontend-api-client` · #5
 
-- [ ] `types.ts` com os tipos do contrato da API
-- [ ] `client.ts` com as 4 funções tipadas e o `ApiError`
-- [ ] `chatReducer.ts` com as ações `start`, `loaded`, `send`, `reply`, `fail`, `retry`, `expired`, `reset`
-- [ ] Testes de `client.test.ts`
-- [ ] Rodar contra o stub da API da Maria Eduarda (`uvicorn` local) e conferir o formato das respostas
+- [x] `types.ts` com os tipos do contrato da API e os type guards
+- [x] `client.ts` com as 4 funções tipadas e o `ApiError`
+- [x] `chatReducer.ts` com as ações `start`, `loaded`, `send`, `reply`, `fail`, `retry`, `expired`, `reset`, mais `screenError` e `reload` para a tela inicial e a recarga
+- [x] Testes de `client.test.ts` e `chatReducer.test.ts`
+- [x] Rodar contra a API da Maria Eduarda (`uvicorn` local, com LLM falso) e conferir o formato das respostas, inclusive 404, 422, 503 e 504
 
 ### Fase 3. Telas · sex 13/11 · `feat/frontend-chat` · #13
 
