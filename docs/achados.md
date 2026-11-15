@@ -27,6 +27,7 @@ Quando aparecer um achado novo, ele entra aqui, no tópico certo, com data, núm
 | 17 | HTML do modelo na resposta | Um `<script>` na resposta poderia executar no navegador | `react-markdown` sem `rehype-raw` mostra o HTML como texto, com teste |
 | 18 | Com o `sessionStorage` bloqueado, o chat travava em "digitando…" | Navegadores com cookies bloqueados descartavam toda resposta | A sessão atual fica num `useRef`; o `sessionStorage` serve só para o F5 |
 | 19 | "Duplicar aba" copia o `sessionStorage` | As duas abas ficam com o mesmo ID e viram o mesmo usuário | Na demo, abrir cada aba nova digitando a URL |
+| 20 | Teste de concorrência passando pela API real | 20 usuários em 3 s, 80 mensagens sem retry e nenhum nome trocado | Prova de ponta a ponta com 1 worker; falta repetir na EC2 |
 
 ---
 
@@ -127,6 +128,20 @@ Quando aparecer um achado novo, ele entra aqui, no tópico certo, com data, núm
 - **O que fizemos:** um `ContextVar` (`llm_attempts`) que o `chat` atualiza a cada tentativa. A rota lê o valor depois do `await`, com sucesso ou erro (PR #42, sugestão da Maria Eduarda na revisão).
 - **Por que não uma variável global:** o servidor atende várias requisições ao mesmo tempo no mesmo processo. Uma global seria sobrescrita por outra requisição no meio do caminho. Com o `ContextVar`, cada requisição roda na sua própria task do asyncio, com uma cópia do contexto, e não vê o valor das outras. Há um teste com duas chamadas concorrentes, uma com retry e outra sem, que confirma 2 e 1 tentativas.
 - **Para explicar:** é a versão asyncio da "variável por thread" (thread-local). Mostra que a concorrência foi pensada também nos detalhes, não só nas sessões.
+
+### 20. Teste de concorrência passando pela API: 20 usuários em 3 s (15/11)
+
+- **Medição:** `scripts/concurrency_test.py` contra a API da `main` rodando local (`localhost:8000`, 1 worker), com o `Qwen/Qwen3.8-27B` na DeepInfra. Cada usuário cria a sessão, diz o nome e depois pergunta o próprio nome.
+
+  | Rodada | Resultado | Tempo total |
+  |---|---|---|
+  | `--users 10` | 10/10 OK | 2,75 s |
+  | `--users 10` | 10/10 OK | 1,76 s |
+  | `--users 20` (máximo do script) | 20/20 OK | 3,05 s |
+
+- **Nos logs do servidor:** as 80 mensagens saíram com `status=200 attempts=1`, sem nenhum retry, nenhum rate limit e nenhum nome trocado. A latência por mensagem teve mediana de 615 ms e máxima de 2,4 s. No fim, o `/api/health` mostrou `active_sessions=0`, porque o script apaga as sessões que cria.
+- **O que muda em relação ao achado 10:** aquele teste foi direto no `LLMClient`. Este passa pelo servidor inteiro (rotas, `SessionStore`, locks e LLM real), então é a primeira prova de ponta a ponta de que um processo com 1 worker atende 20 usuários ao mesmo tempo sem misturar sessões (comentário na #22).
+- **Para explicar:** dobrar os usuários de 10 para 20 quase não mudou o tempo total. Enquanto uma requisição espera o LLM, o asyncio atende as outras, e o lock de cada sessão não bloqueia as demais. Falta repetir contra a EC2 (#22 e #28).
 
 ---
 
