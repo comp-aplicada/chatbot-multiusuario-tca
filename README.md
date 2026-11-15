@@ -123,7 +123,8 @@ npm run build       # gera frontend/dist, o que o Nginx serve
 
 ### Como o front trata sessão e erros
 
-- O `session_id` fica no `sessionStorage`: cada aba é um usuário diferente e o F5 recarrega o histórico com `GET /api/sessions/{id}`.
+- O `session_id` fica no `sessionStorage`: cada aba é um usuário diferente e o F5 recarrega o histórico com `GET /api/sessions/{id}`. O "Duplicar aba" do navegador copia o `sessionStorage`, então a aba duplicada continua a mesma sessão; para outro usuário, abra uma aba nova e digite a URL.
+- Se o navegador bloquear o `sessionStorage`, o chat funciona normalmente e só perde a recarga do histórico no F5.
 - Se a sessão sumiu (expirou ou a API reiniciou), o 404 apaga o ID e volta para a tela inicial com "Sua sessão expirou".
 - `src/api/client.ts` é o único lugar com `fetch`. Toda falha vira um `ApiError`: erros da API mostram a `message` dela, e rede fora ou 502 do Nginx mostram "Não foi possível falar com o servidor. Tente novamente.", sempre com "Tentar de novo", que reenvia o mesmo texto.
 - As respostas do assistente são renderizadas com `react-markdown` sem `rehype-raw`, então HTML vindo do modelo aparece como texto e nunca executa.
