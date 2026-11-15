@@ -79,8 +79,8 @@ Aba 2 ── POST /api/sessions ──> UUID 9b1d2c3e…  ──> sessionStorage
 
 ### Antes de começar (no intervalo do bloco do Pedro)
 
-- [ ] 3 abas abertas em `https://<domínio>`, na tela inicial, com zoom de 125% no navegador
-- [ ] Terminal do Eduardo pronto com `python scripts/concurrency_test.py --base-url https://<domínio> --users 10`
+- [ ] 3 abas abertas em `https://<domínio>`, na tela inicial, com zoom de 125% no navegador. Abrir cada uma com Ctrl+T e colar a URL, **nunca com "Duplicar aba"**: duplicar copia o `sessionStorage` e as duas abas ficam com a mesma sessão (achado 19)
+- [ ] Terminal do Eduardo pronto com `python scripts/concurrency_test.py --base-url https://<domínio> --users 10` e uma aba com `https://<domínio>/api/docs`
 - [ ] Terminal do Pedro pronto com os logs do container `api`
 - [ ] Plano B aberto: versão local em `http://localhost:8080` e o vídeo de backup
 
@@ -93,12 +93,12 @@ Aba 2 ── POST /api/sessions ──> UUID 9b1d2c3e…  ──> sessionStorage
 | 1:20 | Nas 3 abas, rápido em sequência: "Qual é o meu nome? Responda só o nome." | "Agora as três perguntam ao mesmo tempo. Se as sessões se misturassem, alguém receberia o nome errado." |
 | 2:00 | Mostrar as 3 respostas certas. Na aba 3, perguntar "Posso ser demitido por justa causa sem aviso?" | "E a aba 3 fala com outra persona, a jurídica, com outro prompt." |
 | 2:30 | Mostrar o slide com o QR code | "Agora é com vocês: entrem pelo QR code e conversem. Cada celular é uma sessão." |
-| 2:50 | Passar para o Eduardo | "Enquanto vocês usam, o Eduardo roda o teste com 10 usuários automáticos." |
+| 2:50 | Passar para o Eduardo. Ele roda o script, explica a tabela e mostra o Swagger em `/api/docs` por uns 10 s | "Enquanto vocês usam, o Eduardo roda o teste com 10 usuários automáticos." |
 | 3:30 | Passar para o Pedro | "E o Pedro mostra nos logs as sessões de vocês chegando, só com os 8 primeiros caracteres do ID." |
 
 ### Falas de passagem
 
-- **Para o Eduardo:** "Eduardo, roda o teste de concorrência com 10 usuários contra produção." Ele explica a tabela: cada usuário recebeu o próprio nome, nenhum trocado.
+- **Para o Eduardo:** "Eduardo, roda o teste de concorrência com 10 usuários contra produção." Ele explica a tabela: cada usuário recebeu o próprio nome, nenhum trocado. Depois abre o Swagger em `https://<domínio>/api/docs` por uns 10 s, para mostrar as 5 rotas do contrato (seção 11 do PRD).
 - **Para o Pedro:** "Pedro, mostra os logs do container." Ele aponta `session_created`, `message` com a latência e o `attempts`, e que o ID completo nunca aparece.
 
 ### Se algo der errado
