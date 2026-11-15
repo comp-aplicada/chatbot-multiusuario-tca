@@ -1,3 +1,4 @@
+import { PERSONA_IDS } from './api/types.ts'
 import { PERSONAS } from './constants.ts'
 
 export default function App() {
@@ -8,10 +9,10 @@ export default function App() {
         Converse com um assistente de IA. Cada aba do navegador é uma sessão diferente.
       </p>
       <ul className="grid w-full gap-3 sm:grid-cols-2">
-        {PERSONAS.map((persona) => (
-          <li key={persona.id} className="rounded-xl border border-zinc-200 bg-white p-4">
-            <p className="font-medium">{persona.label}</p>
-            <p className="text-sm text-zinc-600">{persona.description}</p>
+        {PERSONA_IDS.map((id) => (
+          <li key={id} className="rounded-xl border border-zinc-200 bg-white p-4">
+            <p className="font-medium">{PERSONAS[id].label}</p>
+            <p className="text-sm text-zinc-600">{PERSONAS[id].description}</p>
           </li>
         ))}
       </ul>
