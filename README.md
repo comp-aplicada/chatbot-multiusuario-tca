@@ -12,6 +12,140 @@ Chatbot multiusuário com LLM da Equipe B para a 2ª avaliação (apresentação
 | `scripts/` | Teste de concorrência e smoke test | Eduardo e Pedro |
 | `docs/` | Enunciado, PRD e planos | Todos |
 
+## API
+
+| Ambiente | Base URL | Swagger |
+|---|---|---|
+| Produção | `https://<domínio>` (domínio da EC2, #12) | `https://<domínio>/api/docs` |
+| Local | `http://localhost:8000` | <http://localhost:8000/api/docs> |
+
+Todas as rotas ficam sob `/api`, recebem e devolvem JSON em UTF-8, e as datas vêm em ISO 8601 UTC (`2026-11-15T16:45:27Z`). O OpenAPI fica em `/api/openapi.json`. O contrato completo está na [seção 5 do PRD](docs/prd-chatbot-multiusuario.md#5-contrato-da-api).
+
+| Método | Rota | O que faz | Sucesso | Erros |
+|---|---|---|---|---|
+| `GET` | `/api/health` | Estado da API, sessões ativas e modelo em uso | 200 | |
+| `POST` | `/api/sessions` | Conectar: cria uma sessão com ID único | 201 | 422 |
+| `GET` | `/api/sessions/{session_id}` | Histórico da sessão | 200 | 404 |
+| `POST` | `/api/sessions/{session_id}/messages` | Pergunta ao chatbot e devolve a resposta | 200 | 404, 422, 503, 504 |
+| `DELETE` | `/api/sessions/{session_id}` | Encerra a sessão | 204 | 404 |
+
+Os exemplos abaixo foram rodados em sequência num terminal bash ou zsh. Para usar contra produção, troque só a primeira linha. As respostas foram formatadas para leitura; a API devolve cada JSON numa linha só.
+
+```bash
+BASE=http://localhost:8000
+```
+
+### 1. Health
+
+```bash
+curl -s "$BASE/api/health"
+```
+
+```json
+{"status": "ok", "active_sessions": 0, "model": "Qwen/Qwen3.8-27B"}
+```
+
+### 2. Conectar (criar sessão)
+
+O corpo é opcional: sem corpo, a persona é `geral`. As personas são `geral` e `juridico`. O comando abaixo mostra a resposta e guarda o ID em `SID` para os próximos passos.
+
+```bash
+SID=$(curl -s -X POST "$BASE/api/sessions" \
+  -H 'Content-Type: application/json' \
+  -d '{"persona": "geral"}' \
+  | tee /dev/stderr | python3 -c 'import json, sys; print(json.load(sys.stdin)["session_id"])')
+```
+
+```json
+{"session_id": "20d23dc0-ee0a-42b6-b162-6fe4863ae1e9", "persona": "geral", "created_at": "2026-11-15T16:45:27Z"}
+```
+
+Resposta `201`. O ID é um UUID v4 gerado no servidor e funciona como token: só quem o conhece acessa a conversa, e não existe rota que liste sessões.
+
+### 3. Perguntar
+
+```bash
+curl -s -X POST "$BASE/api/sessions/$SID/messages" \
+  -H 'Content-Type: application/json' \
+  -d '{"content": "O que é computação em nuvem? Responda em uma frase."}'
+```
+
+```json
+{
+  "session_id": "20d23dc0-ee0a-42b6-b162-6fe4863ae1e9",
+  "reply": {
+    "role": "assistant",
+    "content": "Computação em nuvem é o fornecimento de serviços de TI, como servidores, armazenamento e bancos de dados, pela internet sob demanda.",
+    "created_at": "2026-11-15T16:45:29Z"
+  }
+}
+```
+
+O `content` aceita de 1 a 2000 caracteres, contados depois de tirar os espaços das pontas. O servidor manda para o LLM as últimas 20 mensagens da sessão (`HISTORY_WINDOW`), então o chatbot lembra o que foi dito antes.
+
+### 4. Histórico
+
+```bash
+curl -s "$BASE/api/sessions/$SID"
+```
+
+```json
+{
+  "session_id": "20d23dc0-ee0a-42b6-b162-6fe4863ae1e9",
+  "persona": "geral",
+  "created_at": "2026-11-15T16:45:27Z",
+  "last_activity": "2026-11-15T16:45:29Z",
+  "messages": [
+    {"role": "user", "content": "O que é computação em nuvem? Responda em uma frase.", "created_at": "2026-11-15T16:45:27Z"},
+    {"role": "assistant", "content": "Computação em nuvem é o fornecimento de serviços de TI, como servidores, armazenamento e bancos de dados, pela internet sob demanda.", "created_at": "2026-11-15T16:45:29Z"}
+  ]
+}
+```
+
+Ler o histórico não renova a sessão. Ela expira depois de 30 minutos sem perguntas (`SESSION_TTL_MIN`).
+
+### 5. Encerrar
+
+```bash
+curl -s -i -X DELETE "$BASE/api/sessions/$SID"
+```
+
+```
+HTTP/1.1 204 No Content
+date: Sun, 15 Nov 2026 16:46:13 GMT
+server: uvicorn
+```
+
+O `-i` mostra o status e os headers, porque o `204` não tem corpo.
+
+Depois disso, qualquer rota com esse ID responde `404`.
+
+### Erros
+
+Todo erro vem no mesmo formato, e o `message` é o texto que o front mostra para o usuário:
+
+```bash
+curl -s "$BASE/api/sessions/$SID"
+```
+
+```json
+{"error": {"code": "session_not_found", "message": "Sessão não encontrada ou expirada."}}
+```
+
+| HTTP | `code` | Quando | `message` |
+|---|---|---|---|
+| 404 | `session_not_found` | ID inexistente, expirado ou encerrado | Sessão não encontrada ou expirada. |
+| 422 | `invalid_request` | `content` vazio ou só com espaços | Requisição inválida: content não pode ficar vazio. |
+| 422 | `invalid_request` | `content` com mais de 2000 caracteres | Requisição inválida: content deve ter no máximo 2000 caracteres. |
+| 422 | `invalid_request` | Corpo sem `content` | Requisição inválida: content é obrigatório. |
+| 422 | `invalid_request` | Persona diferente de `geral` e `juridico` | Requisição inválida: persona deve ser 'geral' ou 'juridico'. |
+| 422 | `invalid_request` | Corpo que não é JSON | Requisição inválida: o corpo não é um JSON válido. |
+| 503 | `llm_unavailable` | Rate limit ou erro do provedor depois dos retries, chave inválida ou resposta vazia | O modelo está indisponível no momento. Tente novamente. |
+| 504 | `llm_timeout` | Uma tentativa passou de 20 s (`LLM_TIMEOUT_S`) ou a pergunta inteira passou de 60 s (`LLM_TOTAL_TIMEOUT_S`) | O modelo demorou demais para responder. Tente novamente. |
+| 500 | `internal_error` | Erro inesperado | Erro interno do servidor. |
+
+Uma pergunta que termina em erro não entra no histórico: o servidor grava a pergunta e a resposta juntas, só quando a resposta chega. Por isso dá para reenviar o mesmo texto sem duplicar nada.
+
 ## Backend: como rodar e testar
 
 A API fica em `backend/` e precisa do **Python 3.12**. Os comandos abaixo partem da raiz do repositório.
