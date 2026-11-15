@@ -353,7 +353,7 @@ Resposta:
 ### 7.2 Containers (`docker-compose.yml`)
 
 - **`api`:** build de `backend/Dockerfile` (python:3.12-slim). Comando `uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1`, `env_file: .env`, `restart: unless-stopped`. Não publica porta para fora (só a rede interna do Compose).
-- **`web`:** build de `infra/web.Dockerfile`. O estágio 1 (`node:20`) roda `npm ci && npm run build`; o estágio 2 (`nginx:alpine`) copia `dist/` e `default.conf`. Publica as portas 80 e 443 e monta `/etc/letsencrypt` do host em modo somente leitura. `restart: unless-stopped`.
+- **`web`:** build de `infra/web.Dockerfile`. O estágio 1 (`node:22`) roda `npm ci && npm run build`; o estágio 2 (`nginx:alpine`) copia `dist/` e `default.conf`. Publica as portas 80 e 443 e monta `/etc/letsencrypt` do host em modo somente leitura. `restart: unless-stopped`.
 
 ### 7.3 Nginx (`infra/nginx/default.conf`)
 

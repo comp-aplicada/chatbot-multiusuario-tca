@@ -4,13 +4,13 @@ Interface de chat em React + Vite + TypeScript. Plano completo em [`docs/plano-f
 
 ## Requisitos
 
-- Node 20 ou mais novo
+- Node 22.22.2 ou mais novo dentro da linha 22, ou 24.15+, ou 26+ (`engines.node` no `package.json`). No Node 20 o build passa, mas o Vitest e o jsdom não rodam.
 
 ## Como rodar
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 

@@ -40,7 +40,7 @@ Entregar uma interface web de chat, servida no mesmo domínio da API, que:
 | Markdown | **react-markdown** (sem `rehype-raw`) | HTML vindo do modelo vira texto, não é interpretado (PRD 6) |
 | Testes | **Vitest + @testing-library/react + jsdom** | Definido no PRD 8.6 |
 | Lint | **oxlint** (padrão do template Vite atual) | Organização do código conta na nota |
-| Node | **20.19 ou mais novo** (exigência do Vite 8) | Mesmo do estágio de build do `infra/web.Dockerfile` (PRD 7.2) |
+| Node | **22.22.2 ou mais novo** (exigência do Vitest e do jsdom; 24.15+ e 26+ também servem) | Mesmo do estágio de build do `infra/web.Dockerfile` (PRD 7.2) |
 
 ---
 
@@ -227,7 +227,7 @@ Branches no padrão `feat/frontend-<descricao>`, um PR por fase, revisado pelo E
 
 ### Fase 1. Esqueleto · ter 10/11 · `feat/frontend-setup` · #4
 
-- [x] `npm create vite@latest frontend -- --template react`
+- [x] `npm create vite@latest frontend -- --template react-ts`
 - [x] Instalar Tailwind v4, `react-markdown`, Vitest, Testing Library e jsdom
 - [x] `vite.config.ts` com proxy `/api` para `http://localhost:8000` e bloco `test` (jsdom, `tests/setup.ts`)
 - [x] `constants.ts` com `MAX_CHARS = 2000`, personas e textos fixos
@@ -320,7 +320,7 @@ Branches no padrão `feat/frontend-<descricao>`, um PR por fase, revisado pelo E
 | Dependência ou risco | De quem | Plano B |
 |---|---|---|
 | Stub da API com o formato do contrato | Maria Eduarda | Desenvolver com `fetch` mockado nos testes e um JSON fixo até o stub chegar |
-| `infra/web.Dockerfile` e Nginx servindo o `dist/` | Pedro | Garantir que `npm ci && npm run build` funciona limpo em Node 20 |
+| `infra/web.Dockerfile` e Nginx servindo o `dist/` | Pedro | Garantir que `npm ci && npm run build` funciona limpo em Node 22 |
 | Domínio e HTTPS no ar | Pedro | Demo pela versão local em `http://localhost:8080` |
 | `MAX_CHARS` diferente de `MESSAGE_MAX_CHARS` | Eu e Maria Eduarda | Conferir o `.env.example` antes do congelamento |
 | `navigator.clipboard` exige HTTPS | Eu | Em HTTP local, o badge mostra o ID completo num `title` em vez de copiar |
