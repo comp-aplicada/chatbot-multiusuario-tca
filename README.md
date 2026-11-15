@@ -134,6 +134,7 @@ npm run build       # gera frontend/dist, o que o Nginx serve
 - [Enunciado do trabalho](docs/tarefa.md)
 - [PRD / spec técnica](docs/prd-chatbot-multiusuario.md)
 - [Plano do front-end](docs/plano-frontend.md)
+- [Roteiro do bloco do front e da demo](docs/apresentacao-frontend.md)
 - [Regras para agentes e commits](AGENTS.md)
 - [Achados e aprendizados](docs/achados.md): problemas e descobertas do desenvolvimento, para estudar para a apresentação
 
