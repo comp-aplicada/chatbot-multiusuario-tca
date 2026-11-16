@@ -16,7 +16,7 @@ Chatbot multiusuário com LLM da Equipe B para a 2ª avaliação (apresentação
 
 | Ambiente | Base URL | Swagger |
 |---|---|---|
-| Produção | `https://<domínio>` (domínio da EC2, #12) | `https://<domínio>/api/docs` |
+| Produção | `https://fundos.dev.br` | <https://fundos.dev.br/api/docs> |
 | Local | `http://localhost:8000` | <http://localhost:8000/api/docs> |
 
 Todas as rotas ficam sob `/api`, recebem e devolvem JSON em UTF-8, e as datas vêm em ISO 8601 UTC (`2026-11-15T16:45:27Z`). O OpenAPI fica em `/api/openapi.json`. O contrato completo está na [seção 5 do PRD](docs/prd-chatbot-multiusuario.md#5-contrato-da-api).
