@@ -27,7 +27,8 @@ Quando aparecer um achado novo, ele entra aqui, no tópico certo, com data, núm
 | 17 | HTML do modelo na resposta | Um `<script>` na resposta poderia executar no navegador | `react-markdown` sem `rehype-raw` mostra o HTML como texto, com teste |
 | 18 | Com o `sessionStorage` bloqueado, o chat travava em "digitando…" | Navegadores com cookies bloqueados descartavam toda resposta | A sessão atual fica num `useRef`; o `sessionStorage` serve só para o F5 |
 | 19 | "Duplicar aba" copia o `sessionStorage` | As duas abas ficam com o mesmo ID e viram o mesmo usuário | Na demo, abrir cada aba nova digitando a URL |
-| 20 | Teste de concorrência passando pela API real | 20 usuários em 3 s, 80 mensagens sem retry e nenhum nome trocado | Prova de ponta a ponta com 1 worker; falta repetir na EC2 |
+| 20 | Teste de concorrência passando pela API real | 20 usuários em 3 s, 80 mensagens sem retry e nenhum nome trocado | Prova de ponta a ponta com 1 worker |
+| 21 | Teste de concorrência em produção | 20 usuários em 7,3 s em `https://fundos.dev.br`, nenhum nome trocado | Comando pronto para rodar ao vivo na demo |
 
 ---
 
@@ -141,7 +142,20 @@ Quando aparecer um achado novo, ele entra aqui, no tópico certo, com data, núm
 
 - **Nos logs do servidor:** as 80 mensagens saíram com `status=200 attempts=1`, sem nenhum retry, nenhum rate limit e nenhum nome trocado. A latência por mensagem teve mediana de 615 ms e máxima de 2,4 s. No fim, o `/api/health` mostrou `active_sessions=0`, porque o script apaga as sessões que cria.
 - **O que muda em relação ao achado 10:** aquele teste foi direto no `LLMClient`. Este passa pelo servidor inteiro (rotas, `SessionStore`, locks e LLM real), então é a primeira prova de ponta a ponta de que um processo com 1 worker atende 20 usuários ao mesmo tempo sem misturar sessões (comentário na #22).
-- **Para explicar:** dobrar os usuários de 10 para 20 quase não mudou o tempo total. Enquanto uma requisição espera o LLM, o asyncio atende as outras, e o lock de cada sessão não bloqueia as demais. Falta repetir contra a EC2 (#22 e #28).
+- **Para explicar:** dobrar os usuários de 10 para 20 quase não mudou o tempo total. Enquanto uma requisição espera o LLM, o asyncio atende as outras, e o lock de cada sessão não bloqueia as demais. O mesmo teste em produção está no achado 21.
+
+### 21. Teste de concorrência em produção: 20 usuários em 7,3 s (15/11)
+
+- **Medição:** o mesmo `scripts/concurrency_test.py`, agora contra `https://fundos.dev.br`, com o `Qwen/Qwen3.8-27B` na DeepInfra.
+
+  | Rodada | Resultado | Tempo total | Latência por usuário |
+  |---|---|---|---|
+  | `--users 10` | 10/10 OK | 8,56 s | 3,7 s a 8,4 s |
+  | `--users 20` | 20/20 OK | 7,29 s | 3,5 s a 7,1 s |
+
+- **Resultado:** nenhum nome trocado, nenhum rate limit do provedor e nenhum erro HTTP. No fim, o `/api/health` mostrou `active_sessions=0` (comentário na #22).
+- **O que mudou em relação ao local:** o tempo total ficou de 2 a 3 vezes maior que no `localhost` (3,05 s com 20 usuários). A diferença vem da rede e do proxy até o servidor, não do número de usuários: a rodada com 20 terminou antes da rodada com 10.
+- **Para explicar:** é a prova ao vivo do requisito multiusuário. Na demo, rodar `python scripts/concurrency_test.py --base-url https://fundos.dev.br --users 10` enquanto a turma usa o site pelo QR code. Contar com uns 8 s até a tabela aparecer.
 
 ---
 
